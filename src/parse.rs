@@ -1,4 +1,4 @@
-use crate::{DebugExpand, FortuplesInfo, Template, TemplateElement, TemplatePush, Repetition};
+use crate::{DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement, TemplatePush};
 use proc_macro2::{Span, TokenStream, TokenTree};
 
 use syn::{
@@ -199,13 +199,8 @@ fn parse_impl_template_impl(
                         }
 
                         let mut rep_template = vec![];
-                        parse_impl_template_impl(
-                            info,
-                            &mut rep_template,
-                            group.stream(),
-                            true,
-                        )?;
-                        template.push(Repetition::new(rep_template,separator).into());
+                        parse_impl_template_impl(info, &mut rep_template, group.stream(), true)?;
+                        template.push(Repetition::new(rep_template, separator).into());
                     }
                     _ => {
                         template.push_token(tt);
@@ -215,12 +210,7 @@ fn parse_impl_template_impl(
             }
             TokenTree::Group(group) => {
                 let mut group_template = vec![];
-                parse_impl_template_impl(
-                    info,
-                    &mut group_template,
-                    group.stream(),
-                    is_repetition,
-                )?;
+                parse_impl_template_impl(info, &mut group_template, group.stream(), is_repetition)?;
                 template.push(TemplateElement::Group {
                     delim: group.delimiter(),
                     template: group_template,

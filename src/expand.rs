@@ -95,15 +95,19 @@ impl FortuplesInfo {
                 Member => match rep_idx {
                     Some(rep_idx) => {
                         tokens.extend(Self::instantiate_member(members, rep_idx));
-                    },
-                    None => panic!("Unexpected member repetition. This is a bug, please report this"),
+                    }
+                    None => {
+                        panic!("Unexpected member repetition. This is a bug, please report this")
+                    }
                 },
                 Var(var_name) => match rep_idx {
                     Some(rep_idx) => {
                         tokens.extend(Self::instantiate_var(var_name, rep_idx)?);
-                    },
-                    None => panic!("Unexpected variable repetition. This is a bug, please report this"),
-                }
+                    }
+                    None => {
+                        panic!("Unexpected variable repetition. This is a bug, please report this")
+                    }
+                },
                 Raw(stream) => tokens.extend(stream.clone()),
                 Repetition(rep) => self.expand_repetition(rep, members, tuple, tokens)?,
                 Group { delim, template } => {
