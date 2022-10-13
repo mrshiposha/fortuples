@@ -54,7 +54,6 @@ fortuples! {
     #[tuples::member_type(u32)]
     #[tuples::min_size(2)]
     #[tuples::max_size(3)]
-    #[tuples::debug_expand(path = "expand.rs")]
     impl Vector<#Compoenents> {
         fn length(&self) -> f32 {
             let coords = &self.0;
@@ -66,7 +65,6 @@ fortuples! {
             (squares as f32).sqrt()
         }
     }
-
 }
 
 #[test]
