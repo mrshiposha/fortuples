@@ -3,6 +3,7 @@ name = "fortuples"
 version = "0.1.0"
 authors = ["Daniel Shiposha"]
 edition = "2021"
+license = "MIT"
 
 [lib]
 proc-macro = true
