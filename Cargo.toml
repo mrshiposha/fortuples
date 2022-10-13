@@ -1,11 +1,24 @@
 [package]
 name = "fortuples"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Daniel Shiposha"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/mrshiposha/fortuples"
 description = "Macros to generalize inherent and trait implementation over tuples"
+keywords = [
+    "impl",
+    "for",
+    "tuples",
+    "metaprogramming",
+    "trait",
+    "crate",
+    "macro",
+    "proc-macro",
+    "tuple",
+    "generalization"
+]
+categories = ["proc-macro", "metaprogramming"]
 
 [lib]
 proc-macro = true
