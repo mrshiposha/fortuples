@@ -33,7 +33,6 @@ impl FortuplesInfo {
             self.expand_instance(&self.template, members, &mut tokens)?;
         }
 
-        println!("template: {:?}", self.template);
         self.debug_expand(&tokens)?;
 
         Ok(tokens)
