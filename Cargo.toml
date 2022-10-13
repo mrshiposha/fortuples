@@ -1,0 +1,16 @@
+[package]
+name = "fortuples"
+version = "0.1.0"
+authors = ["Daniel Shiposha"]
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "1.0.102", features=["full"] }
+quote = "1.0.21"
+proc-macro2 = "1.0.46"
+
+[dev-dependencies]
+trybuild = "1.0.71"
