@@ -84,6 +84,7 @@ impl Repetition {
 #[derive(Debug)]
 enum TemplateElement {
     Tuple,
+    TupleLen,
     Member,
     Var(proc_macro2::Ident),
     Repetition(Repetition),

@@ -1,5 +1,5 @@
 use crate::{DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement, TemplatePush};
-use proc_macro2::{Span, TokenStream, TokenTree};
+use proc_macro2::{Span, TokenStream, TokenTree, Delimiter};
 
 use syn::{
     buffer::Cursor,
@@ -179,7 +179,20 @@ fn parse_impl_template_impl(
                 let next_tt = iter.next().unwrap();
 
                 match next_tt {
-                    TokenTree::Ident(ident) => parse_metavar(info, template, ident, is_repetition)?,
+                    TokenTree::Ident(ident) => {
+                        if ident == "len" {
+                            if let Some(TokenTree::Group(group)) = iter.peek() {
+                                if let Delimiter::Parenthesis = group.delimiter() {
+                                    if group.stream().to_string() == info.tuple_name() {
+                                        iter.next().unwrap();
+                                        template.push(TemplateElement::TupleLen);
+                                    }
+                                }
+                            }
+                        } else {
+                            parse_metavar(info, template, ident, is_repetition)?
+                        }
+                    },
                     TokenTree::Group(group) => {
                         let separator = iter
                             .next()

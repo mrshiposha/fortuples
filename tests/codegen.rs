@@ -124,6 +124,16 @@ fortuples! {
     }
 }
 
+trait ConstLength {
+    const LENGTH: usize;
+}
+
+fortuples! {
+    impl ConstLength for #Tuple {
+        const LENGTH: usize = #len(Tuple);
+    }
+}
+
 #[test]
 fn test_sum() {
     assert_eq!(Container((1,)).sum(), 1);
@@ -211,4 +221,12 @@ fn tuple_length() {
     assert_eq!((0,).length(), 1);
     assert_eq!((0, 'a').length(), 2);
     assert_eq!((0, 'a', 3.14).length(), 3);
+}
+
+#[test]
+fn test_const_length() {
+    assert_eq!(<() as ConstLength>::LENGTH, ().length());
+    assert_eq!(<(u32,) as ConstLength>::LENGTH, (0,).length());
+    assert_eq!(<(u32, char) as ConstLength>::LENGTH, (0, 'a').length());
+    assert_eq!(<(u32, char, f32) as ConstLength>::LENGTH, (0, 'a', 3.14).length());
 }

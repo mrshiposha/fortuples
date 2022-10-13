@@ -91,6 +91,7 @@ impl FortuplesInfo {
         for element in template {
             match element {
                 Tuple => tokens.extend(tuple.clone()),
+                TupleLen => tokens.extend(Self::tuple_len(members)),
                 Member => match rep_idx {
                     Some(rep_idx) => {
                         tokens.extend(Self::instantiate_member(members, rep_idx));
@@ -150,6 +151,7 @@ impl FortuplesInfo {
             for element in rep.template.iter() {
                 match element {
                     Tuple => tokens.extend(tuple.clone()),
+                    TupleLen => tokens.extend(Self::tuple_len(members)),
                     Member => tokens.extend(Self::instantiate_member(members, i)),
                     Var(var_name) => tokens.extend(Self::instantiate_var(var_name, i)?),
                     Raw(stream) => tokens.extend(stream.clone()),
@@ -178,6 +180,11 @@ impl FortuplesInfo {
     fn instantiate_var(var_name: &Ident, idx: usize) -> Result<TokenStream> {
         let var = parse_str::<Expr>(format!("{}.{}", var_name, idx).as_str())?;
         Ok(quote!(#var))
+    }
+
+    fn tuple_len(members: &[Type]) -> TokenStream {
+        let len = members.len();
+        quote!(#len)
     }
 
     fn debug_expand(&self, tokens: &TokenStream) -> Result<()> {
