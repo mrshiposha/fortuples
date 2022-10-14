@@ -1,5 +1,5 @@
 use crate::{DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement, TemplatePush};
-use proc_macro2::{Span, TokenStream, TokenTree, Delimiter};
+use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 
 use syn::{
     buffer::Cursor,
@@ -24,29 +24,22 @@ impl TryFrom<Attribute> for FortuplesAttr {
     fn try_from(attr: Attribute) -> Result<Self> {
         let segments = attr.path.segments.iter().collect::<Vec<_>>();
 
-        let (tuples, setting) = if let &[tuples, setting] = segments.as_slice() {
-            (tuples, setting)
+        let setting = if let &[tuples, setting, ref rest @ ..] = segments.as_slice() {
+            if tuples.ident != "tuples" {
+                return Ok(Self::External(attr));
+            }
+
+            if !rest.is_empty() {
+                return Err(Error::new(
+                    attr.path.span(),
+                    "unknown setting - the setting path is too long",
+                ));
+            }
+
+            setting
         } else {
             return Ok(Self::External(attr));
         };
-
-        if tuples.ident != "tuples" {
-            return Ok(Self::External(attr));
-        }
-
-        if !tuples.arguments.is_empty() {
-            return Err(Error::new(
-                tuples.arguments.span(),
-                "unexpected `tuples` arguments",
-            ));
-        }
-
-        if !setting.arguments.is_empty() {
-            return Err(Error::new(
-                tuples.arguments.span(),
-                format!("unexpected `tuples::{}` arguments", setting.ident),
-            ));
-        }
 
         match setting.ident.to_string().as_str() {
             "min_size" => Ok(Self::MinSize((
@@ -86,7 +79,7 @@ impl TryFrom<Attribute> for FortuplesAttr {
                     let value = name_value.lit;
 
                     match value {
-                        Lit::Str(path) => DebugExpand::File(path.value().into()),
+                        Lit::Str(path) => DebugExpand::File((path.value().into(), path.span())),
                         _ => return Err(Error::new(value.span(), "a filepath is expected")),
                     }
                 };
@@ -124,9 +117,27 @@ impl Parse for FortuplesInfo {
         }
 
         if info.min_size() >= info.max_size() {
+            let min_size_span = info
+                .min_size
+                .map(|(_, span)| span)
+                .unwrap_or_else(Span::call_site);
+
+            let note_min_size_default = match info.min_size {
+                Some(_) => "".into(),
+                None => format!(" Note: the default min size is {}", info.min_size()),
+            };
+
+            let note_max_size_default = match info.max_size {
+                Some(_) => "".into(),
+                None => format!(" Note: the default max size is {}", info.max_size()),
+            };
+
             return Err(Error::new(
-                Span::call_site(),
-                "`min_size` should be strictly less than `max_size`",
+                min_size_span,
+                format!(
+                    "`min_size` should be strictly less than `max_size`.{}{}",
+                    note_min_size_default, note_max_size_default
+                ),
             ));
         }
 
@@ -192,7 +203,7 @@ fn parse_impl_template_impl(
                         } else {
                             parse_metavar(info, template, ident, is_repetition)?
                         }
-                    },
+                    }
                     TokenTree::Group(group) => {
                         let separator = iter
                             .next()
@@ -254,7 +265,7 @@ fn parse_metavar(
                 ident.span(),
                 format!(
                     concat! [
-                        "Attempting to expand the tuple member types without the repetition context.",
+                        "Attempting to expand the tuple member types without the repetition context.\n",
                         "Try rewrite this like the following: `#(#{}),*`"
                     ],
                     ident_str,
@@ -268,7 +279,7 @@ fn parse_metavar(
             ident.span(),
             format!(
                 concat![
-                    "Attempting to expand a tuple variable without the repetition context.",
+                    "Attempting to expand a tuple variable without the repetition context.\n",
                     "Try rewrite this like the following: `#(#{}),*`"
                 ],
                 ident_str,
