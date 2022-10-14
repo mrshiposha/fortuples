@@ -57,7 +57,7 @@ impl FortuplesInfo {
 
 enum DebugExpand {
     Stdout,
-    File(PathBuf),
+    File((PathBuf, Span)),
 }
 
 trait TemplatePush {

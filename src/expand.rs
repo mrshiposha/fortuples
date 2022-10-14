@@ -1,12 +1,17 @@
-use std::{
-    io::{Read, Write},
-    process::Stdio,
-};
-
-use crate::{DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement};
+use crate::{FortuplesInfo, Repetition, Template, TemplateElement};
 use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 use quote::{quote, TokenStreamExt};
-use syn::{parse_str, Error, Expr, GenericParam, Ident, Result, Type, TypePath};
+use syn::{parse_str, Expr, GenericParam, Ident, Result, Type, TypePath};
+
+#[cfg(feature = "debug")]
+use {
+    crate::DebugExpand,
+    std::{
+        io::{Read, Write},
+        process::Stdio,
+    },
+    syn::Error,
+};
 
 impl FortuplesInfo {
     pub fn expand(self) -> Result<TokenStream> {
@@ -187,14 +192,15 @@ impl FortuplesInfo {
         quote!(#len)
     }
 
+    #[cfg(feature = "debug")]
     fn debug_expand(&self, tokens: &TokenStream) -> Result<()> {
         if let Some((ref debug_expand, span)) = self.debug_expand {
             let result = match debug_expand {
                 DebugExpand::Stdout => pretty_print_tokenstream(std::io::stdout(), tokens),
-                DebugExpand::File(path) => {
+                DebugExpand::File((path, span)) => {
                     let file = std::fs::File::create(path).map_err(|err| {
                         Error::new(
-                            span,
+                            span.clone(),
                             format!("unable to open the debug expand file: {}", err),
                         )
                     })?;
@@ -208,8 +214,14 @@ impl FortuplesInfo {
 
         Ok(())
     }
+
+    #[cfg(not(feature = "debug"))]
+    fn debug_expand(&self, _tokens: &TokenStream) -> Result<()> {
+        Ok(())
+    }
 }
 
+#[cfg(feature = "debug")]
 fn pretty_print_tokenstream<W: Write>(
     mut out: W,
     tokens: &TokenStream,
