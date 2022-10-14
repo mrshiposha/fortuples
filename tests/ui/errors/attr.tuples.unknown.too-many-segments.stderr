@@ -1,0 +1,5 @@
+error: unknown setting - the setting path is too long
+ --> tests/ui/errors/attr.tuples.unknown.too-many-segments.rs:6:7
+  |
+6 |     #[tuples::too::many]
+  |       ^^^^^^

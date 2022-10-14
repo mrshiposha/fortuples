@@ -1,0 +1,11 @@
+error: `min_size` should be set only once
+ --> tests/ui/errors/attr.tuples.unique.min-size.rs:7:15
+  |
+7 |     #[tuples::min_size(2)]
+  |               ^^^^^^^^
+
+error: the first definition was here
+ --> tests/ui/errors/attr.tuples.unique.min-size.rs:6:15
+  |
+6 |     #[tuples::min_size(1)]
+  |               ^^^^^^^^

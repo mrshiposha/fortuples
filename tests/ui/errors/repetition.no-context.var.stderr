@@ -1,0 +1,6 @@
+error: Attempting to expand a tuple variable without the repetition context.
+       Try rewrite this like the following: `#(#myvar),*`
+ --> tests/ui/errors/repetition.no-context.var.rs:7:10
+  |
+7 |         #myvar
+  |          ^^^^^

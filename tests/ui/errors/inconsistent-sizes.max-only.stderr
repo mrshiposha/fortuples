@@ -1,0 +1,10 @@
+error: `min_size` should be strictly less than `max_size`. Note: the default min size is 0
+ --> tests/ui/errors/inconsistent-sizes.max-only.rs:5:1
+  |
+5 | / fortuples! {
+6 | |     #[tuples::max_size(0)]
+7 | |     impl Container<#Tuple> {}
+8 | | }
+  | |_^
+  |
+  = note: this error originates in the macro `fortuples` (in Nightly builds, run with -Z macro-backtrace for more info)

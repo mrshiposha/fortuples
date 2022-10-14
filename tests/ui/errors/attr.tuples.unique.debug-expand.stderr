@@ -1,0 +1,11 @@
+error: `debug_expand` should be set only once
+ --> tests/ui/errors/attr.tuples.unique.debug-expand.rs:7:15
+  |
+7 |     #[tuples::debug_expand(path = "")]
+  |               ^^^^^^^^^^^^
+
+error: the first definition was here
+ --> tests/ui/errors/attr.tuples.unique.debug-expand.rs:6:15
+  |
+6 |     #[tuples::debug_expand]
+  |               ^^^^^^^^^^^^

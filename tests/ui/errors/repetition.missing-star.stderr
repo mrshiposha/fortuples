@@ -1,0 +1,5 @@
+error: `*` is expected
+ --> tests/ui/errors/repetition.missing-star.rs:6:34
+  |
+6 |     impl Container<#Tuple> {} #(),
+  |                                  ^

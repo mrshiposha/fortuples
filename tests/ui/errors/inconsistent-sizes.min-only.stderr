@@ -1,0 +1,5 @@
+error: `min_size` should be strictly less than `max_size`. Note: the default max size is 16
+ --> tests/ui/errors/inconsistent-sizes.min-only.rs:6:15
+  |
+6 |     #[tuples::min_size(16)]
+  |               ^^^^^^^^

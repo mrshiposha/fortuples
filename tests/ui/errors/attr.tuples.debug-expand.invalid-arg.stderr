@@ -1,0 +1,5 @@
+error: `path` is expected
+ --> tests/ui/errors/attr.tuples.debug-expand.invalid-arg.rs:6:28
+  |
+6 |     #[tuples::debug_expand(invalid = "")]
+  |                            ^^^^^^^

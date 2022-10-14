@@ -1,0 +1,5 @@
+error: separator is expected
+ --> tests/ui/errors/repetition.missing-separator.rs:6:33
+  |
+6 |     impl Container<#Tuple> {} #()
+  |                                 ^

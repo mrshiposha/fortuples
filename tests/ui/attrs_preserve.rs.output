@@ -1,0 +1,6 @@
+#[cfg(feature = "test")]
+#[doc = "test docs"]
+impl Container<()> {}
+#[cfg(feature = "test")]
+#[doc = "test docs"]
+impl<TestMember0> Container<(TestMember0,)> {}

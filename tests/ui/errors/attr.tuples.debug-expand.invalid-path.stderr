@@ -1,0 +1,5 @@
+error: a filepath is expected
+ --> tests/ui/errors/attr.tuples.debug-expand.invalid-path.rs:6:35
+  |
+6 |     #[tuples::debug_expand(path = 2)]
+  |                                   ^

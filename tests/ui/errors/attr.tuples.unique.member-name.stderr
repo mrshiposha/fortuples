@@ -1,0 +1,11 @@
+error: `member_name` should be set only once
+ --> tests/ui/errors/attr.tuples.unique.member-name.rs:7:15
+  |
+7 |     #[tuples::member_name(B)]
+  |               ^^^^^^^^^^^
+
+error: the first definition was here
+ --> tests/ui/errors/attr.tuples.unique.member-name.rs:6:15
+  |
+6 |     #[tuples::member_name(A)]
+  |               ^^^^^^^^^^^

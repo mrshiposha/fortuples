@@ -1,0 +1,5 @@
+error: unknown setting
+ --> tests/ui/errors/attr.tuples.unknown.rs:6:15
+  |
+6 |     #[tuples::unknown]
+  |               ^^^^^^^

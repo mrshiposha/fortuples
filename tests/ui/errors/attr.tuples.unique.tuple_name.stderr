@@ -1,0 +1,11 @@
+error: `tuple_name` should be set only once
+ --> tests/ui/errors/attr.tuples.unique.tuple_name.rs:7:15
+  |
+7 |     #[tuples::tuple_name(B)]
+  |               ^^^^^^^^^^
+
+error: the first definition was here
+ --> tests/ui/errors/attr.tuples.unique.tuple_name.rs:6:15
+  |
+6 |     #[tuples::tuple_name(A)]
+  |               ^^^^^^^^^^

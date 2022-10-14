@@ -1,0 +1,5 @@
+error: unexpected end of input, expected path
+ --> tests/ui/errors/attr.tuples.debug-expand.empty-arg.rs:6:28
+  |
+6 |     #[tuples::debug_expand()]
+  |                            ^

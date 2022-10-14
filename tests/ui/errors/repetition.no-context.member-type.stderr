@@ -1,0 +1,6 @@
+error: Attempting to expand the tuple member types without the repetition context.
+       Try rewrite this like the following: `#(#Member),*`
+ --> tests/ui/errors/repetition.no-context.member-type.rs:7:10
+  |
+7 |         #Member
+  |          ^^^^^^

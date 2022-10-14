@@ -1,0 +1,11 @@
+error: `max_size` should be set only once
+ --> tests/ui/errors/attr.tuples.unique.max-size.rs:7:15
+  |
+7 |     #[tuples::max_size(2)]
+  |               ^^^^^^^^
+
+error: the first definition was here
+ --> tests/ui/errors/attr.tuples.unique.max-size.rs:6:15
+  |
+6 |     #[tuples::max_size(1)]
+  |               ^^^^^^^^

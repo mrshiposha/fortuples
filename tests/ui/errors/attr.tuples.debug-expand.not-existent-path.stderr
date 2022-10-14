@@ -1,0 +1,5 @@
+error: unable to open the debug expand file: No such file or directory (os error 2)
+ --> tests/ui/errors/attr.tuples.debug-expand.not-existent-path.rs:6:35
+  |
+6 |     #[tuples::debug_expand(path = "not/existing/file")]
+  |                                   ^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,11 @@
+error: `member_type` should be set only once
+ --> tests/ui/errors/attr.tuples.unique.member-type.rs:7:15
+  |
+7 |     #[tuples::member_type(B)]
+  |               ^^^^^^^^^^^
+
+error: the first definition was here
+ --> tests/ui/errors/attr.tuples.unique.member-type.rs:6:15
+  |
+6 |     #[tuples::member_type(A)]
+  |               ^^^^^^^^^^^
