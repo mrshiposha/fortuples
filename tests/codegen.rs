@@ -128,9 +128,29 @@ trait ConstLength {
     const LENGTH: usize;
 }
 
+// tuple length
 fortuples! {
     impl ConstLength for #Tuple {
         const LENGTH: usize = #len(Tuple);
+    }
+}
+
+// recursive repetition
+fortuples! {
+    #[tuples::min_size(1)]
+    #[tuples::max_size(2)]
+    #[tuples::member_type(i32)]
+    impl Container<#Tuple> {
+        fn recursive(self) -> Vec<Vec<Vec<i32>>> {
+            let tuple = self.0;
+            vec![#(
+                vec![#(
+                    vec![#(
+                        #tuple
+                    ),*]
+                ),*]
+            ),*]
+        }
     }
 }
 
@@ -231,5 +251,18 @@ fn test_const_length() {
     assert_eq!(
         <(u32, char, f32) as ConstLength>::LENGTH,
         (0, 'a', 3.14).length()
+    );
+}
+
+#[test]
+fn test_recursive_repetition() {
+    assert_eq!(Container((42,)).recursive(), vec![vec![vec![42]]],);
+
+    assert_eq!(
+        Container((42, 112)).recursive(),
+        vec![
+            vec![vec![42, 112], vec![42, 112]],
+            vec![vec![42, 112], vec![42, 112]]
+        ],
     );
 }
