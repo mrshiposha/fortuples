@@ -1,4 +1,3 @@
-use crate::{DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement, TemplatePush};
 use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 
 use syn::{
@@ -6,6 +5,10 @@ use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
     Attribute, Error, Ident, Lit, LitInt, MetaNameValue, Result, Token, Type,
+};
+
+use crate::types::{
+    DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement, TemplatePush,
 };
 
 enum FortuplesAttr {

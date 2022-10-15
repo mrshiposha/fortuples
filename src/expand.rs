@@ -1,11 +1,14 @@
-use crate::{FortuplesInfo, Repetition, Template, TemplateElement};
+use crate::{
+    types::{Repetition, Template, TemplateElement},
+    FortuplesInfo,
+};
 use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 use quote::{quote, TokenStreamExt};
 use syn::{parse_str, Expr, GenericParam, Ident, Result, Type, TypePath};
 
 #[cfg(feature = "debug")]
 use {
-    crate::DebugExpand,
+    crate::types::DebugExpand,
     std::{
         io::{Read, Write},
         process::Stdio,
