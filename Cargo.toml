@@ -5,7 +5,7 @@ authors = ["Daniel Shiposha"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/mrshiposha/fortuples"
-description = "Macros to generalize inherent and trait implementation over tuples"
+description = "Macros to generalize inherent and trait implementations over tuples"
 keywords = ["impl", "for", "tuples", "metaprogramming", "trait"]
 
 [lib]
