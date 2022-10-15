@@ -249,28 +249,33 @@ where
                 ),
             ));
         }
-    } else if ident == "len" {
-        if let Some(TokenTree::Group(group)) = iter.peek() {
-            if let Delimiter::Parenthesis = group.delimiter() {
-                if group.stream().to_string() == info.tuple_name() {
-                    iter.next().unwrap();
-                    template.push(TemplateElement::TupleLen);
+    } else {
+        if ident == "len" {
+            if let Some(TokenTree::Group(group)) = iter.peek() {
+                if let Delimiter::Parenthesis = group.delimiter() {
+                    if group.stream().to_string() == info.tuple_name() {
+                        iter.next().unwrap();
+                        template.push(TemplateElement::TupleLen);
+                        return Ok(());
+                    }
                 }
             }
         }
-    } else if is_repetition {
-        template.push(TemplateElement::Var(ident));
-    } else {
-        return Err(Error::new(
-            ident.span(),
-            format!(
-                concat![
-                    "Attempting to expand a tuple variable without the repetition context.\n",
-                    "Try rewrite this like the following: `#(#{}),*`"
-                ],
-                ident,
-            ),
-        ));
+
+        if is_repetition {
+            template.push(TemplateElement::Var(ident));
+        } else {
+            return Err(Error::new(
+                ident.span(),
+                format!(
+                    concat![
+                        "Attempting to expand a tuple variable without the repetition context.\n",
+                        "Try rewrite this like the following: `#(#{}),*`"
+                    ],
+                    ident,
+                ),
+            ));
+        }
     }
 
     Ok(())
