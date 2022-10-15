@@ -1,3 +1,5 @@
+use std::iter::Peekable;
+
 use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 
 use syn::{
@@ -194,40 +196,10 @@ fn parse_impl_template_impl(
 
                 match next_tt {
                     TokenTree::Ident(ident) => {
-                        if ident == "len" {
-                            if let Some(TokenTree::Group(group)) = iter.peek() {
-                                if let Delimiter::Parenthesis = group.delimiter() {
-                                    if group.stream().to_string() == info.tuple_name() {
-                                        iter.next().unwrap();
-                                        template.push(TemplateElement::TupleLen);
-                                    }
-                                }
-                            }
-                        } else {
-                            parse_metavar(info, template, ident, is_repetition)?
-                        }
+                        parse_metavar(&mut iter, info, template, ident, is_repetition)?
                     }
                     TokenTree::Group(group) => {
-                        let separator = iter
-                            .next()
-                            .ok_or_else(|| Error::new(group.span_close(), "separator is expected"))
-                            .map(|tt| match tt {
-                                TokenTree::Punct(p) => Ok((p.as_char() != '*').then(|| p)),
-                                _ => Err(Error::new(tt.span(), "punctuation token is expected")),
-                            })??;
-
-                        if let Some(ref separator) = separator {
-                            iter.next()
-                                .ok_or_else(|| Error::new(separator.span(), "`*` is expected"))
-                                .map(|tt| match tt {
-                                    TokenTree::Punct(p) if p.as_char() == '*' => Ok(()),
-                                    _ => Err(Error::new(tt.span(), "`*` is expected")),
-                                })??;
-                        }
-
-                        let mut rep_template = vec![];
-                        parse_impl_template_impl(info, &mut rep_template, group.stream(), true)?;
-                        template.push(Repetition::new(rep_template, separator).into());
+                        parse_metavar_repetition(&mut iter, info, template, group)?
                     }
                     _ => {
                         template.push_token(tt);
@@ -250,17 +222,19 @@ fn parse_impl_template_impl(
     Ok(())
 }
 
-fn parse_metavar(
+fn parse_metavar<I>(
+    iter: &mut Peekable<I>,
     info: &FortuplesInfo,
     template: &mut Template,
     ident: proc_macro2::Ident,
     is_repetition: bool,
-) -> Result<()> {
-    let ident_str = ident.to_string();
-
-    if ident_str == info.tuple_name() {
+) -> Result<()>
+where
+    I: Iterator<Item = TokenTree>,
+{
+    if ident == info.tuple_name() {
         template.push(TemplateElement::Tuple);
-    } else if ident_str == info.member_name() {
+    } else if ident == info.member_name() {
         if is_repetition {
             template.push(TemplateElement::Member);
         } else {
@@ -271,9 +245,18 @@ fn parse_metavar(
                         "Attempting to expand the tuple member types without the repetition context.\n",
                         "Try rewrite this like the following: `#(#{}),*`"
                     ],
-                    ident_str,
+                    ident,
                 ),
             ));
+        }
+    } else if ident == "len" {
+        if let Some(TokenTree::Group(group)) = iter.peek() {
+            if let Delimiter::Parenthesis = group.delimiter() {
+                if group.stream().to_string() == info.tuple_name() {
+                    iter.next().unwrap();
+                    template.push(TemplateElement::TupleLen);
+                }
+            }
         }
     } else if is_repetition {
         template.push(TemplateElement::Var(ident));
@@ -285,10 +268,43 @@ fn parse_metavar(
                     "Attempting to expand a tuple variable without the repetition context.\n",
                     "Try rewrite this like the following: `#(#{}),*`"
                 ],
-                ident_str,
+                ident,
             ),
         ));
     }
+
+    Ok(())
+}
+
+fn parse_metavar_repetition<I>(
+    iter: &mut Peekable<I>,
+    info: &FortuplesInfo,
+    template: &mut Template,
+    group: proc_macro2::Group,
+) -> Result<()>
+where
+    I: Iterator<Item = TokenTree>,
+{
+    let separator = iter
+        .next()
+        .ok_or_else(|| Error::new(group.span_close(), "separator is expected"))
+        .map(|tt| match tt {
+            TokenTree::Punct(p) => Ok((p.as_char() != '*').then(|| p)),
+            _ => Err(Error::new(tt.span(), "punctuation token is expected")),
+        })??;
+
+    if let Some(ref separator) = separator {
+        iter.next()
+            .ok_or_else(|| Error::new(separator.span(), "`*` is expected"))
+            .map(|tt| match tt {
+                TokenTree::Punct(p) if p.as_char() == '*' => Ok(()),
+                _ => Err(Error::new(tt.span(), "`*` is expected")),
+            })??;
+    }
+
+    let mut rep_template = vec![];
+    parse_impl_template_impl(info, &mut rep_template, group.stream(), true)?;
+    template.push(Repetition::new(rep_template, separator).into());
 
     Ok(())
 }
