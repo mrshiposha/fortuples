@@ -135,6 +135,21 @@ fortuples! {
     }
 }
 
+// #len as tuple
+fortuples! {
+    #[tuples::min_size(1)]
+    #[tuples::max_size(2)]
+    impl Container<#Tuple>
+    where
+        #(#Member: Fn(i32) -> i32),*
+    {
+        fn tuple_as_len_fns(self) -> Vec<i32> {
+            let len = self.0;
+            vec![#(#len(10)),*]
+        }
+    }
+}
+
 // recursive repetition
 fortuples! {
     #[tuples::min_size(1)]
@@ -264,5 +279,14 @@ fn test_recursive_repetition() {
             vec![vec![42, 112], vec![42, 112]],
             vec![vec![42, 112], vec![42, 112]]
         ],
+    );
+}
+
+#[test]
+fn test_tuple_as_len() {
+    assert_eq!(Container((|i| i * 10,)).tuple_as_len_fns(), vec![100]);
+    assert_eq!(
+        Container((|i| i * 10, |i| i * 100,)).tuple_as_len_fns(),
+        vec![100, 1000]
     );
 }
