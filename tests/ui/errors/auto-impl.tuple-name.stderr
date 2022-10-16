@@ -1,0 +1,5 @@
+error: `auto_impl` won't use the `tuple_name`
+ --> tests/ui/errors/auto-impl.tuple-name.rs:2:11
+  |
+2 | #[tuples::tuple_name(A)]
+  |           ^^^^^^^^^^

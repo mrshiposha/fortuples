@@ -10,7 +10,8 @@ use syn::{
 };
 
 use crate::types::{
-    DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement, TemplatePush,
+    AutoImplInfo, CommonInfo, DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement,
+    TemplatePush,
 };
 
 enum FortuplesAttr {
@@ -102,11 +103,11 @@ macro_rules! unique {
     };
 }
 
-impl Parse for FortuplesInfo {
+impl Parse for CommonInfo {
     fn parse(input: ParseStream) -> Result<Self> {
         use FortuplesAttr::*;
 
-        let mut info = FortuplesInfo::default();
+        let mut info = CommonInfo::default();
 
         let attrs = Attribute::parse_outer(input)?;
         for attr in attrs {
@@ -146,6 +147,18 @@ impl Parse for FortuplesInfo {
             ));
         }
 
+        Ok(info)
+    }
+}
+
+impl Parse for FortuplesInfo {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let common = input.parse()?;
+        let mut info = FortuplesInfo {
+            common,
+            ..Default::default()
+        };
+
         input.parse::<Token![impl]>()?;
         info.generics = input.parse()?;
 
@@ -156,6 +169,15 @@ impl Parse for FortuplesInfo {
 
         info.template = template;
         Ok(info)
+    }
+}
+
+impl Parse for AutoImplInfo {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let info = input.parse()?;
+        let item_trait = input.parse()?;
+
+        AutoImplInfo::new(info, item_trait)
     }
 }
 
@@ -232,9 +254,9 @@ fn parse_metavar<I>(
 where
     I: Iterator<Item = TokenTree>,
 {
-    if ident == info.tuple_name() {
+    if ident == info.common.tuple_name() {
         template.push(TemplateElement::Tuple);
-    } else if ident == info.member_name() {
+    } else if ident == info.common.member_name() {
         if is_repetition {
             template.push(TemplateElement::Member);
         } else {
@@ -253,7 +275,7 @@ where
         if ident == "len" {
             if let Some(TokenTree::Group(group)) = iter.peek() {
                 if let Delimiter::Parenthesis = group.delimiter() {
-                    if group.stream().to_string() == info.tuple_name() {
+                    if group.stream().to_string() == info.common.tuple_name() {
                         iter.next().unwrap();
                         template.push(TemplateElement::TupleLen);
                         return Ok(());

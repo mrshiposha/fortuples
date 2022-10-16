@@ -1,0 +1,54 @@
+impl<Member0> OnlySelf for (Member0,)
+where
+    Member0: OnlySelf,
+{
+    fn foo(self) {
+        self.0.foo();
+    }
+    fn bar(&self) {
+        self.0.bar();
+    }
+    fn baz(&mut self) {
+        self.0.baz();
+    }
+}
+impl<Member0, Member1> OnlySelf for (Member0, Member1)
+where
+    Member0: OnlySelf,
+    Member1: OnlySelf,
+{
+    fn foo(self) {
+        self.0.foo();
+        self.1.foo();
+    }
+    fn bar(&self) {
+        self.0.bar();
+        self.1.bar();
+    }
+    fn baz(&mut self) {
+        self.0.baz();
+        self.1.baz();
+    }
+}
+impl<Member0, Member1, Member2> OnlySelf for (Member0, Member1, Member2)
+where
+    Member0: OnlySelf,
+    Member1: OnlySelf,
+    Member2: OnlySelf,
+{
+    fn foo(self) {
+        self.0.foo();
+        self.1.foo();
+        self.2.foo();
+    }
+    fn bar(&self) {
+        self.0.bar();
+        self.1.bar();
+        self.2.bar();
+    }
+    fn baz(&mut self) {
+        self.0.baz();
+        self.1.baz();
+        self.2.baz();
+    }
+}

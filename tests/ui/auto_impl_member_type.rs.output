@@ -1,0 +1,60 @@
+impl MemberType for (i32,) {
+    fn inc(&mut self) {
+        self.0.inc();
+    }
+    fn dec(&mut self) {
+        self.0.dec();
+    }
+}
+impl MemberType for (i32, i32) {
+    fn inc(&mut self) {
+        self.0.inc();
+        self.1.inc();
+    }
+    fn dec(&mut self) {
+        self.0.dec();
+        self.1.dec();
+    }
+}
+impl MemberType for (i32, i32, i32) {
+    fn inc(&mut self) {
+        self.0.inc();
+        self.1.inc();
+        self.2.inc();
+    }
+    fn dec(&mut self) {
+        self.0.dec();
+        self.1.dec();
+        self.2.dec();
+    }
+}
+impl MemberType for (i32, i32, i32, i32) {
+    fn inc(&mut self) {
+        self.0.inc();
+        self.1.inc();
+        self.2.inc();
+        self.3.inc();
+    }
+    fn dec(&mut self) {
+        self.0.dec();
+        self.1.dec();
+        self.2.dec();
+        self.3.dec();
+    }
+}
+impl MemberType for (i32, i32, i32, i32, i32) {
+    fn inc(&mut self) {
+        self.0.inc();
+        self.1.inc();
+        self.2.inc();
+        self.3.inc();
+        self.4.inc();
+    }
+    fn dec(&mut self) {
+        self.0.dec();
+        self.1.dec();
+        self.2.dec();
+        self.3.dec();
+        self.4.dec();
+    }
+}

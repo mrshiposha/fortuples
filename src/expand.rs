@@ -1,14 +1,18 @@
+use std::str::FromStr;
+
 use crate::{
-    types::{Repetition, Template, TemplateElement},
+    types::{AutoImplInfo, CommonInfo, DebugExpand, Repetition, Template, TemplateElement},
     FortuplesInfo,
 };
 use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 use quote::{quote, TokenStreamExt};
-use syn::{parse_str, Expr, GenericParam, Ident, Result, Type, TypePath};
+use syn::{
+    parse_str, Expr, FnArg, GenericParam, Ident, Pat, Result, TraitItem, TraitItemMethod, Type,
+    TypePath,
+};
 
 #[cfg(feature = "debug")]
 use {
-    crate::types::DebugExpand,
     std::{
         io::{Read, Write},
         process::Stdio,
@@ -18,16 +22,19 @@ use {
 
 impl FortuplesInfo {
     pub fn expand(self) -> Result<TokenStream> {
-        let min_size = self.min_size();
-        let max_size = self.max_size();
-        let member_name = self.member_name();
+        let min_size = self.common.min_size();
+        let max_size = self.common.max_size();
 
         let members = (0..=max_size)
-            .map(|i| match self.member_type.as_ref() {
+            .map(|i| match self.common.member_type.as_ref() {
                 Some((ty, _)) => ty.clone(),
                 None => Type::Path(TypePath {
                     qself: None,
-                    path: Ident::new(&format!("{}{}", member_name, i), Span::call_site()).into(),
+                    path: Ident::new(
+                        &format!("{}{}", self.common.member_name(), i),
+                        Span::call_site(),
+                    )
+                    .into(),
                 }),
             })
             .collect::<Vec<_>>();
@@ -41,7 +48,7 @@ impl FortuplesInfo {
             self.expand_instance(&self.template, members, &mut tokens)?;
         }
 
-        self.debug_expand(&tokens)?;
+        self.common.debug_expand(&tokens)?;
 
         Ok(tokens)
     }
@@ -58,14 +65,14 @@ impl FortuplesInfo {
             quote!((#(#members),*,))
         };
 
-        let attrs = &self.attrs;
+        let attrs = &self.common.attrs;
         let mut generics = self.generics.clone();
 
-        if self.member_type.is_none() {
+        if self.common.member_type.is_none() {
             for i in 0..members.len() {
                 generics.params.push(GenericParam::Type(
                     Ident::new(
-                        format!("{}{}", self.member_name(), i).as_str(),
+                        format!("{}{}", self.common.member_name(), i).as_str(),
                         Span::call_site(),
                     )
                     .into(),
@@ -194,7 +201,132 @@ impl FortuplesInfo {
         let len = members.len();
         quote!(#len)
     }
+}
 
+impl AutoImplInfo {
+    pub fn expand(self) -> Result<TokenStream> {
+        let mut tokens = TokenStream::new();
+
+        let attrs = &self.common.attrs;
+        let item_trait = &self.item_trait;
+
+        tokens.extend(quote! {
+            #(#attrs)*
+            #item_trait
+        });
+
+        self.expand_trait_impl(&mut tokens);
+
+        Ok(tokens)
+    }
+
+    fn expand_trait_impl(&self, tokens: &mut TokenStream) {
+        let methods = self.expand_trait_impl_methods();
+
+        let pound = TokenStream::from_str("#").unwrap();
+
+        let min_size = self.common.min_size();
+        let max_size = self.common.max_size();
+        let member_type_attr = self
+            .common
+            .member_type
+            .clone()
+            .map(|(ty, _)| quote!(#[tuples::member_type(#ty)]));
+
+        let debug_expand_attr =
+            self.common
+                .debug_expand
+                .clone()
+                .map(|(debug_expand, _)| match debug_expand {
+                    DebugExpand::Stdout => quote!(#[tuples::debug_expand]),
+                    DebugExpand::File((path, _)) => {
+                        let path_str = path.to_str().expect(
+                            "The path should be already checked. This is a bug, please report this",
+                        );
+                        quote!(#[tuples::debug_expand(path = #path_str)])
+                    }
+                });
+
+        let trait_name = &self.item_trait.ident;
+        let tuple_metavar = TokenStream::from_str("#Tuple").unwrap();
+        let (impl_generics, ty_generics, where_clause) = self.item_trait.generics.split_for_impl();
+
+        let where_clause = if self.common.member_type.is_none() {
+            let bounds = quote!(#pound (#pound Member: #trait_name),*);
+
+            where_clause
+                .map(|where_clause| quote!(#where_clause, #bounds))
+                .unwrap_or_else(|| quote!(where #bounds))
+        } else {
+            quote!(#where_clause)
+        };
+
+        tokens.extend(quote! {
+            ::fortuples::fortuples! {
+                #[tuples::min_size(#min_size)]
+                #[tuples::max_size(#max_size)]
+                #member_type_attr
+                #debug_expand_attr
+                impl #impl_generics #trait_name #ty_generics for #tuple_metavar
+                #where_clause
+                {
+                    #methods
+                }
+            }
+        });
+    }
+
+    fn expand_trait_impl_methods(&self) -> TokenStream {
+        let mut tokens = TokenStream::new();
+
+        for item in self.item_trait.items.iter() {
+            match item {
+                TraitItem::Method(method) => {
+                    self.expand_trait_impl_method(method, &mut tokens);
+                }
+                _ => panic!("Unexpected trait item. This is a bug, please report this"),
+            }
+        }
+
+        tokens
+    }
+
+    fn expand_trait_impl_method(&self, method: &TraitItemMethod, tokens: &mut TokenStream) {
+        let pound = TokenStream::from_str("#").unwrap();
+
+        let self_var_or_ty = match method.sig.inputs.first() {
+            Some(FnArg::Receiver(_)) => quote!(#pound self.),
+            _ => quote!(#pound Member::),
+        };
+
+        let args_pass = method.sig.inputs.iter().filter_map(|arg| match arg {
+            FnArg::Typed(p) => {
+                let arg_name = match p.pat.as_ref() {
+                    Pat::Ident(ident) => ident,
+                    _ => panic!("Unexpected arg pattern. This is a bug, please report this"),
+                };
+
+                match p.ty.as_ref() {
+                    Type::Reference(_) => Some(quote!(#arg_name)),
+                    _ => Some(quote!(#arg_name.clone())),
+                }
+            }
+            FnArg::Receiver(_) => None,
+        });
+
+        let signature = &method.sig;
+        let method_name = &signature.ident;
+        tokens.extend(quote! {
+            #signature {
+                #pound (
+                    #self_var_or_ty #method_name(#(#args_pass),*);
+                )*
+            }
+        });
+    }
+}
+
+impl CommonInfo {
     #[cfg(feature = "debug")]
     fn debug_expand(&self, tokens: &TokenStream) -> Result<()> {
         if let Some((ref debug_expand, span)) = self.debug_expand {

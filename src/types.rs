@@ -1,10 +1,13 @@
 use proc_macro2::{Delimiter, Punct, Span, TokenTree};
 use quote::TokenStreamExt;
 use std::{path::PathBuf, vec::Vec};
-use syn::{Attribute, Generics, Type};
+use syn::{
+    parse_quote, spanned::Spanned, Attribute, Error, FnArg, Generics, Ident, ItemTrait, Pat,
+    Result, ReturnType, Signature, TraitItem, Type,
+};
 
 #[derive(Default)]
-pub struct FortuplesInfo {
+pub struct CommonInfo {
     pub attrs: Vec<Attribute>,
     pub min_size: Option<(usize, Span)>,
     pub max_size: Option<(usize, Span)>,
@@ -12,11 +15,9 @@ pub struct FortuplesInfo {
     pub tuple_name: Option<(String, Span)>,
     pub member_name: Option<(String, Span)>,
     pub debug_expand: Option<(DebugExpand, Span)>,
-    pub generics: Generics,
-    pub template: Template,
 }
 
-impl FortuplesInfo {
+impl CommonInfo {
     pub fn min_size(&self) -> usize {
         self.min_size.map(|(s, _)| s).unwrap_or(0)
     }
@@ -40,6 +41,88 @@ impl FortuplesInfo {
     }
 }
 
+#[derive(Default)]
+pub struct FortuplesInfo {
+    pub common: CommonInfo,
+    pub generics: Generics,
+    pub template: Template,
+}
+
+pub struct AutoImplInfo {
+    pub common: CommonInfo,
+    pub item_trait: ItemTrait,
+    pub updated_signatures: Vec<Signature>,
+}
+
+impl AutoImplInfo {
+    pub fn new(common: CommonInfo, item_trait: ItemTrait) -> Result<Self> {
+        if let Some((_, span)) = common.tuple_name {
+            return Err(Error::new(span, "`auto_impl` won't use the `tuple_name`"));
+        }
+
+        if let Some((_, span)) = common.member_name {
+            return Err(Error::new(span, "`auto_impl` won't use the `member_name`"));
+        }
+
+        let mut updated_signatures = vec![];
+
+        for item in item_trait.items.iter() {
+            match item {
+                TraitItem::Method(method) => {
+                    if let ReturnType::Type(..) = &method.sig.output {
+                        return Err(Error::new(
+                            method.sig.output.span(),
+                            "`auto_impl` doesn't support return types",
+                        ));
+                    }
+
+                    updated_signatures.push(Self::updated_signature(&method.sig)?);
+                }
+                _ => return Err(Error::new(item.span(), "`auto_impl` supports only methods")),
+            }
+        }
+
+        Ok(Self {
+            common,
+            item_trait,
+            updated_signatures,
+        })
+    }
+
+    fn updated_signature(signature: &Signature) -> Result<Signature> {
+        let mut signature = signature.clone();
+
+        let mut id = 0;
+
+        for arg in signature.inputs.iter_mut() {
+            if let FnArg::Typed(arg) = arg {
+                match arg.pat.as_mut() {
+                    Pat::Ident(_) => {}
+                    Pat::Wild(_) => {
+                        let ident = Ident::new(
+                            format!("fortuples_auto_impl_unique_arg_{}", id).as_str(),
+                            Span::call_site(),
+                        );
+
+                        id += 1;
+
+                        *arg.pat = parse_quote!(#ident);
+                    }
+                    _ => {
+                        return Err(Error::new(
+                            arg.span(),
+                            "`auto_impl` supports only ident of wildcard arguments",
+                        ))
+                    }
+                }
+            }
+        }
+
+        Ok(signature)
+    }
+}
+
+#[derive(Clone)]
 pub enum DebugExpand {
     Stdout,
     File((PathBuf, Span)),

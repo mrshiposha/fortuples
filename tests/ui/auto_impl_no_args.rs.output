@@ -1,0 +1,29 @@
+impl NoArgs for () {
+    fn foo() {}
+    fn bar() {}
+}
+impl<Member0> NoArgs for (Member0,)
+where
+    Member0: NoArgs,
+{
+    fn foo() {
+        Member0::foo();
+    }
+    fn bar() {
+        Member0::bar();
+    }
+}
+impl<Member0, Member1> NoArgs for (Member0, Member1)
+where
+    Member0: NoArgs,
+    Member1: NoArgs,
+{
+    fn foo() {
+        Member0::foo();
+        Member1::foo();
+    }
+    fn bar() {
+        Member0::bar();
+        Member1::bar();
+    }
+}
