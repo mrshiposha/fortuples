@@ -174,6 +174,10 @@ impl Parse for FortuplesInfo {
             ..Default::default()
         };
 
+        if input.peek(Token![unsafe]) {
+            info.unsafety = Some(input.parse::<Token![unsafe]>()?);
+        }
+
         input.parse::<Token![impl]>()?;
         info.generics = input.parse()?;
 

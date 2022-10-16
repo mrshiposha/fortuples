@@ -71,6 +71,7 @@ impl FortuplesInfo {
         };
 
         let attrs = &self.common.attrs;
+        let unsafety = &self.unsafety;
         let mut generics = self.generics.clone();
 
         if self.common.member_type.is_none() {
@@ -89,7 +90,7 @@ impl FortuplesInfo {
 
         tokens.extend(quote! {
             #(#attrs)*
-            impl #impl_generics
+            #unsafety impl #impl_generics
         });
 
         let rep_idx = None;
@@ -262,6 +263,7 @@ impl AutoImplInfo {
                 });
 
         let trait_name = &self.item_trait.ident;
+        let unsafety = &self.item_trait.unsafety;
         let tuple_metavar = TokenStream::from_str("#Tuple").unwrap();
         let (impl_generics, ty_generics, where_clause) = self.item_trait.generics.split_for_impl();
 
@@ -282,7 +284,7 @@ impl AutoImplInfo {
                 #member_type_attr
                 #refs_tuple_attr
                 #debug_expand_attr
-                impl #impl_generics #trait_name #ty_generics for #tuple_metavar
+                #unsafety impl #impl_generics #trait_name #ty_generics for #tuple_metavar
                 #where_clause
                 {
                     #methods

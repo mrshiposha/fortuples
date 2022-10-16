@@ -3,7 +3,7 @@ use quote::TokenStreamExt;
 use std::{path::PathBuf, vec::Vec};
 use syn::{
     parse_quote, spanned::Spanned, Attribute, Error, FnArg, Generics, Ident, ItemTrait, Pat,
-    Result, ReturnType, Signature, TraitItem, Type,
+    Result, ReturnType, Signature, Token, TraitItem, Type,
 };
 
 #[derive(Default)]
@@ -45,6 +45,7 @@ impl CommonInfo {
 #[derive(Default)]
 pub struct FortuplesInfo {
     pub common: CommonInfo,
+    pub unsafety: Option<Token![unsafe]>,
     pub generics: Generics,
     pub template: Template,
 }

@@ -105,6 +105,12 @@ impl MemberType for i32 {
     }
 }
 
+#[fortuples::auto_impl]
+#[tuples::max_size(2)]
+unsafe trait UnsafeTrait {
+    unsafe fn not_safe();
+}
+
 #[test]
 fn test_auto_impl_simple() {
     fn simple<T: SimpleTest>() {}
@@ -295,4 +301,13 @@ fn test_auto_impl_mut_refs() {
     <(&mut (),) as SimpleForMutRefs>::only_on_mut_refs();
     <(&mut (), &mut ()) as SimpleForMutRefs>::only_on_mut_refs();
     <(&mut (), &mut (), &mut ()) as SimpleForMutRefs>::only_on_mut_refs();
+}
+
+#[test]
+fn test_auto_impl_unsafe() {
+    unsafe {
+        <() as UnsafeTrait>::not_safe();
+        <((),) as UnsafeTrait>::not_safe();
+        <((), ()) as UnsafeTrait>::not_safe();
+    }
 }
