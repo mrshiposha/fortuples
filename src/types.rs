@@ -100,7 +100,7 @@ impl AutoImplInfo {
             if let FnArg::Typed(arg) = arg {
                 match arg.pat.as_mut() {
                     Pat::Ident(ident) => {
-                        // To suppress warning in `impl Trait for ()`
+                        // To suppress warnings in `impl Trait for ()`
                         let ident = Ident::new(format!("_{}", ident.ident).as_str(), ident.span());
 
                         *arg.pat = parse_quote!(#ident);
