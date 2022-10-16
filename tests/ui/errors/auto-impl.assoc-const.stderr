@@ -1,0 +1,5 @@
+error: `auto_impl` supports only methods
+ --> tests/ui/errors/auto-impl.assoc-const.rs:3:5
+  |
+3 |     const ASSOC: usize;
+  |     ^^^^^

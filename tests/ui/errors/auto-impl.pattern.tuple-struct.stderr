@@ -1,0 +1,5 @@
+error: `auto_impl` supports only ident of wildcard arguments
+ --> tests/ui/errors/auto-impl.pattern.tuple-struct.rs:3:13
+  |
+3 |     fn test(Foo(a): Foo) {
+  |             ^^^

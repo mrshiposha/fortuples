@@ -1,0 +1,5 @@
+error: `auto_impl` doesn't support return types
+ --> tests/ui/errors/auto-impl.return-type.rs:3:20
+  |
+3 |     fn test(&self) -> i32;
+  |                    ^^

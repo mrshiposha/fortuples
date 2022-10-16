@@ -1,0 +1,5 @@
+error: `auto_impl` supports only methods
+ --> tests/ui/errors/auto-impl.assoc-type.rs:3:5
+  |
+3 |     type Assoc;
+  |     ^^^^

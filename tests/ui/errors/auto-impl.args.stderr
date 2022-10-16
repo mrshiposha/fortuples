@@ -1,0 +1,5 @@
+error: `auto_impl` doesn't take arguments
+ --> tests/ui/errors/auto-impl.args.rs:1:24
+  |
+1 | #[fortuples::auto_impl(not_expected)]
+  |                        ^^^^^^^^^^^^
