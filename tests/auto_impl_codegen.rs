@@ -1,34 +1,10 @@
-use std::{fs::File, io::Read, path::PathBuf, str::FromStr};
-
-use fortuples::fortuples;
-
-#[allow(unused)]
-struct Container<T>(T);
-
-fortuples! {
-    #[tuples::tuple_name(Test)]
-    #[cfg(feature = "test")]
-    #[tuples::member_name(TestMember)]
-    #[doc = "test docs"]
-    #[tuples::max_size(1)]
-    #[tuples::debug_expand(path = "tests/ui/attrs_preserve.rs.output")]
-    impl Container<#Test> {}
-}
-
-#[test]
-fn test_attr_preserve() {
-    assert_output("attrs_preserve.rs");
-}
-
 #[fortuples::auto_impl]
-#[tuples::debug_expand(path = "tests/ui/auto_impl_simple.rs.output")]
 trait SimpleTest {}
 
 impl SimpleTest for i32 {}
 impl SimpleTest for f32 {}
 
 #[fortuples::auto_impl]
-#[tuples::debug_expand(path = "tests/ui/auto_impl_no_args.rs.output")]
 #[tuples::max_size(2)]
 trait NoArgs {
     fn foo();
@@ -49,7 +25,6 @@ impl NoArgs for char {
 }
 
 #[fortuples::auto_impl]
-#[tuples::debug_expand(path = "tests/ui/auto_impl_only_self.rs.output")]
 #[tuples::min_size(1)]
 #[tuples::max_size(3)]
 trait OnlySelf {
@@ -77,7 +52,6 @@ impl OnlySelf for &'static str {
 }
 
 #[fortuples::auto_impl]
-#[tuples::debug_expand(path = "tests/ui/auto_impl_member_type.rs.output")]
 #[tuples::member_type(i32)]
 #[tuples::min_size(1)]
 #[tuples::max_size(5)]
@@ -98,8 +72,6 @@ impl MemberType for i32 {
 
 #[test]
 fn test_auto_impl_simple() {
-    assert_output("auto_impl_simple.rs");
-
     fn simple<T: SimpleTest>() {}
 
     simple::<()>();
@@ -156,8 +128,6 @@ fn test_auto_impl_simple() {
 
 #[test]
 fn test_auto_impl_no_args() {
-    assert_output("auto_impl_no_args.rs");
-
     <() as NoArgs>::foo();
     <() as NoArgs>::bar();
 
@@ -170,8 +140,6 @@ fn test_auto_impl_no_args() {
 
 #[test]
 fn test_auto_impl_only_self() {
-    assert_output("auto_impl_only_self.rs");
-
     fn test<T: OnlySelf>(mut t: T) {
         t.bar();
         t.baz();
@@ -185,8 +153,6 @@ fn test_auto_impl_only_self() {
 
 #[test]
 fn test_auto_impl_member_type() {
-    assert_output("auto_impl_member_type.rs");
-
     {
         let mut _1 = (0,);
         let mut _2 = (0, 10);
@@ -226,24 +192,4 @@ fn test_auto_impl_member_type() {
         assert_eq!(_4, (-1, 9, 19, 29));
         assert_eq!(_5, (-1, 9, 19, 29, 39));
     }
-}
-
-fn assert_output(test_file: &str) {
-    let prefix = "tests/ui/".to_string();
-    let out_ext = ".output";
-    let exp_ext = ".expected";
-
-    let output_path = PathBuf::from_str(&(prefix.clone() + test_file + out_ext)).unwrap();
-    let expected_path = PathBuf::from_str(&(prefix + test_file + exp_ext)).unwrap();
-
-    let mut f_output = File::open(output_path).unwrap();
-    let mut f_expected = File::open(expected_path).unwrap();
-
-    let mut output = String::new();
-    f_output.read_to_string(&mut output).unwrap();
-
-    let mut expected = String::new();
-    f_expected.read_to_string(&mut expected).unwrap();
-
-    assert_eq!(output, expected);
 }
