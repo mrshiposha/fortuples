@@ -97,7 +97,12 @@ impl AutoImplInfo {
         for arg in signature.inputs.iter_mut() {
             if let FnArg::Typed(arg) = arg {
                 match arg.pat.as_mut() {
-                    Pat::Ident(_) => {}
+                    Pat::Ident(ident) => {
+                        // To suppress warning in `impl Trait for ()`
+                        let ident = Ident::new(format!("_{}", ident.ident).as_str(), ident.span());
+
+                        *arg.pat = parse_quote!(#ident);
+                    }
                     Pat::Wild(_) => {
                         let ident = Ident::new(
                             format!("fortuples_auto_impl_unique_arg_{}", id).as_str(),

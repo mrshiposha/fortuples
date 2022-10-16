@@ -6,10 +6,7 @@ use crate::{
 };
 use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 use quote::{quote, TokenStreamExt};
-use syn::{
-    parse_str, Expr, FnArg, GenericParam, Ident, Pat, Result, TraitItem, TraitItemMethod, Type,
-    TypePath,
-};
+use syn::{parse_str, Expr, FnArg, GenericParam, Ident, Pat, Result, Signature, Type, TypePath};
 
 #[cfg(feature = "debug")]
 use {
@@ -279,27 +276,22 @@ impl AutoImplInfo {
     fn expand_trait_impl_methods(&self) -> TokenStream {
         let mut tokens = TokenStream::new();
 
-        for item in self.item_trait.items.iter() {
-            match item {
-                TraitItem::Method(method) => {
-                    self.expand_trait_impl_method(method, &mut tokens);
-                }
-                _ => panic!("Unexpected trait item. This is a bug, please report this"),
-            }
+        for signature in self.updated_signatures.iter() {
+            self.expand_trait_impl_method(signature, &mut tokens);
         }
 
         tokens
     }
 
-    fn expand_trait_impl_method(&self, method: &TraitItemMethod, tokens: &mut TokenStream) {
+    fn expand_trait_impl_method(&self, signature: &Signature, tokens: &mut TokenStream) {
         let pound = TokenStream::from_str("#").unwrap();
 
-        let self_var_or_ty = match method.sig.inputs.first() {
+        let self_var_or_ty = match signature.inputs.first() {
             Some(FnArg::Receiver(_)) => quote!(#pound self.),
             _ => quote!(#pound Member::),
         };
 
-        let args_pass = method.sig.inputs.iter().filter_map(|arg| match arg {
+        let args_pass = signature.inputs.iter().filter_map(|arg| match arg {
             FnArg::Typed(p) => {
                 let arg_name = match p.pat.as_ref() {
                     Pat::Ident(ident) => ident,
@@ -314,7 +306,6 @@ impl AutoImplInfo {
             FnArg::Receiver(_) => None,
         });
 
-        let signature = &method.sig;
         let method_name = &signature.ident;
         tokens.extend(quote! {
             #signature {

@@ -52,6 +52,27 @@ impl OnlySelf for &'static str {
 }
 
 #[fortuples::auto_impl]
+#[tuples::max_size(2)]
+trait Args {
+    fn bias(&self, out: &mut i32);
+
+    fn sum(&mut self, arg: i32, arg_ref: &i32, out: &mut i32) {
+        self.bias(out);
+        *out += arg + arg_ref;
+    }
+
+    fn diff(arg_ref: &i32, arg: i32, out: &mut i32) {
+        *out -= arg_ref - arg;
+    }
+}
+
+impl Args for i32 {
+    fn bias(&self, out: &mut i32) {
+        *out += self;
+    }
+}
+
+#[fortuples::auto_impl]
 #[tuples::member_type(i32)]
 #[tuples::min_size(1)]
 #[tuples::max_size(5)]
@@ -191,5 +212,60 @@ fn test_auto_impl_member_type() {
         assert_eq!(_3, (-1, 9, 19));
         assert_eq!(_4, (-1, 9, 19, 29));
         assert_eq!(_5, (-1, 9, 19, 29, 39));
+    }
+}
+
+#[test]
+fn test_auto_impl_args() {
+
+    let a = 42;
+    let b = 112;
+
+    {
+        let mut out = 0;
+        ().sum(a, &b, &mut out);
+
+        assert_eq!(out, 0);
+    }
+
+    {
+        let mut out = 0;
+        <() as Args>::diff(&a, b, &mut out);
+
+        assert_eq!(out, 0);
+    }
+
+    {
+        let mut out = 0;
+        let num = 10;
+
+        (num,).sum(a, &b, &mut out);
+
+        assert_eq!(out, a + b + num);
+    }
+
+    {
+        let mut out = 0;
+
+        <(i32,) as Args>::diff(&a, a, &mut out);
+
+        assert_eq!(out, 0);
+    }
+
+    {
+        let mut out = 0;
+        let num = 10;
+
+        (num, ()).sum(a, &b, &mut out);
+
+        assert_eq!(out, a + b + num);
+    }
+
+    {
+        let mut out = 0;
+
+        <(i32, ()) as Args>::diff(&a, a, &mut out);
+
+        assert_eq!(out, 0);
     }
 }
