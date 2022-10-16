@@ -97,6 +97,24 @@ trait Generalized<'a, T: Clone, U> {
 }
 
 #[fortuples::auto_impl]
+#[tuples::max_size(2)]
+trait Wildcard {
+    fn wild_foo(&mut self, _: i32, _: &i32);
+
+    fn wild_bar(_: &i32, _: i32, out: &mut i32);
+}
+
+impl Wildcard for i32 {
+    fn wild_foo(&mut self, i: i32, r: &i32) {
+        *self += i + r;
+    }
+
+    fn wild_bar(i: &i32, r: i32, out: &mut i32) {
+        *out += i + r;
+    }
+}
+
+#[fortuples::auto_impl]
 #[tuples::member_type(i32)]
 #[tuples::min_size(1)]
 #[tuples::max_size(5)]
@@ -333,5 +351,43 @@ fn test_auto_impl_unsafe() {
         <() as UnsafeTrait>::not_safe();
         <((),) as UnsafeTrait>::not_safe();
         <((), ()) as UnsafeTrait>::not_safe();
+    }
+}
+
+#[test]
+fn test_auto_impl_wildcard() {
+    let a = 42;
+    let b = 112;
+
+    {
+        let mut num = 0;
+
+        ().wild_foo(a, &b);
+        <() as Wildcard>::wild_bar(&a, b, &mut num);
+
+        assert_eq!(num, 0);
+    }
+
+    {
+        let mut num_t = (1,);
+        let mut num = 0;
+
+        num_t.wild_foo(a, &b);
+        assert_eq!(num_t.0, 1 + a + b);
+
+        <(i32,) as Wildcard>::wild_bar(&a, b, &mut num);
+        assert_eq!(num, a + b);
+    }
+
+    {
+        let mut num_t = (1, 2);
+        let mut num = 0;
+
+        num_t.wild_foo(a, &b);
+        assert_eq!(num_t.0, 1 + a + b);
+        assert_eq!(num_t.1, 2 + a + b);
+
+        <(i32, ()) as Wildcard>::wild_bar(&a, b, &mut num);
+        assert_eq!(num, a + b);
     }
 }
