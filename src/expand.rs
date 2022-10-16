@@ -268,7 +268,7 @@ impl AutoImplInfo {
         let (impl_generics, ty_generics, where_clause) = self.item_trait.generics.split_for_impl();
 
         let where_clause = if self.common.member_type.is_none() {
-            let bounds = quote!(#pound (#pound Member: #trait_name),*);
+            let bounds = quote!(#pound (#pound Member: #trait_name #ty_generics),*);
 
             where_clause
                 .map(|where_clause| quote!(#where_clause, #bounds))

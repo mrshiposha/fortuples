@@ -87,6 +87,16 @@ impl Args for i32 {
 }
 
 #[fortuples::auto_impl]
+#[tuples::max_size(2)]
+trait Generalized<'a, T: Clone, U> {
+    fn foo_gen<'f, F>(&self, t: T, u: &'a U, f: &'f mut F);
+
+    fn bar_gen<'b, B>(t: T, u: &'a U, f: &'b B)
+    where
+        B: Clone;
+}
+
+#[fortuples::auto_impl]
 #[tuples::member_type(i32)]
 #[tuples::min_size(1)]
 #[tuples::max_size(5)]
@@ -190,6 +200,20 @@ fn test_auto_impl_only_self() {
     test((1,));
     test((1, "hi"));
     test((1, "hi", 42));
+}
+
+#[test]
+fn test_auto_impl_generalized() {
+    let mut mut_num = 0;
+    let num = 42;
+
+    ().foo_gen((), &num, &mut mut_num);
+    ((),).foo_gen((), &num, &mut mut_num);
+    ((), ()).foo_gen((), &num, &mut mut_num);
+
+    <() as Generalized<_, _>>::bar_gen((), &num, &mut_num);
+    <((),) as Generalized<_, _>>::bar_gen((), &num, &mut_num);
+    <((), ()) as Generalized<_, _>>::bar_gen((), &num, &mut_num);
 }
 
 #[test]
