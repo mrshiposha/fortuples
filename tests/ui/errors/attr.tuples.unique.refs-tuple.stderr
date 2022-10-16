@@ -1,0 +1,11 @@
+error: `refs_tuple` should be set only once
+ --> tests/ui/errors/attr.tuples.unique.refs-tuple.rs:7:15
+  |
+7 |     #[tuples::refs_tuple(mut)]
+  |               ^^^^^^^^^^
+
+error: the first definition was here
+ --> tests/ui/errors/attr.tuples.unique.refs-tuple.rs:6:15
+  |
+6 |     #[tuples::refs_tuple]
+  |               ^^^^^^^^^^

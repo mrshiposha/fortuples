@@ -5,6 +5,20 @@ impl SimpleTest for i32 {}
 impl SimpleTest for f32 {}
 
 #[fortuples::auto_impl]
+#[tuples::refs_tuple]
+#[tuples::max_size(3)]
+trait SimpleForRefs {
+    fn only_on_refs();
+}
+
+#[fortuples::auto_impl]
+#[tuples::refs_tuple(mut)]
+#[tuples::max_size(3)]
+trait SimpleForMutRefs {
+    fn only_on_mut_refs();
+}
+
+#[fortuples::auto_impl]
 #[tuples::max_size(2)]
 trait NoArgs {
     fn foo();
@@ -217,7 +231,6 @@ fn test_auto_impl_member_type() {
 
 #[test]
 fn test_auto_impl_args() {
-
     let a = 42;
     let b = 112;
 
@@ -268,4 +281,18 @@ fn test_auto_impl_args() {
 
         assert_eq!(out, 0);
     }
+}
+
+#[test]
+fn test_auto_impl_refs() {
+    <(&(),) as SimpleForRefs>::only_on_refs();
+    <(&(), &()) as SimpleForRefs>::only_on_refs();
+    <(&(), &(), &()) as SimpleForRefs>::only_on_refs();
+}
+
+#[test]
+fn test_auto_impl_mut_refs() {
+    <(&mut (),) as SimpleForMutRefs>::only_on_mut_refs();
+    <(&mut (), &mut ()) as SimpleForMutRefs>::only_on_mut_refs();
+    <(&mut (), &mut (), &mut ()) as SimpleForMutRefs>::only_on_mut_refs();
 }

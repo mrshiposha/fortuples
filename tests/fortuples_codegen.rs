@@ -169,6 +169,24 @@ fortuples! {
     }
 }
 
+// refs tuple
+fortuples! {
+    #[tuples::max_size(2)]
+    #[tuples::refs_tuple]
+    impl Container<#Tuple> {
+        fn only_on_refs(&self) {}
+    }
+}
+
+// mut refs tuple
+fortuples! {
+    #[tuples::max_size(2)]
+    #[tuples::refs_tuple(mut)]
+    impl Container<#Tuple> {
+        fn only_on_mut_refs(&self) {}
+    }
+}
+
 #[test]
 fn test_sum() {
     assert_eq!(Container((1,)).sum(), 1);
@@ -289,4 +307,21 @@ fn test_tuple_as_len() {
         Container((|i| i * 10, |i| i * 100,)).tuple_as_len_fns(),
         vec![100, 1000]
     );
+}
+
+#[test]
+fn test_refs_tuple() {
+    Container(()).only_on_refs();
+    Container((&1,)).only_on_refs();
+    Container((&1, &'a')).only_on_refs();
+}
+
+#[test]
+fn test_refs_tuple_mut() {
+    let mut num = 42;
+    let mut ch = 'i';
+
+    Container(()).only_on_mut_refs();
+    Container((&mut num,)).only_on_mut_refs();
+    Container((&mut num, &mut ch)).only_on_mut_refs();
 }

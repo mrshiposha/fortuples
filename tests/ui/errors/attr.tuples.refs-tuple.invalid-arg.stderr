@@ -1,0 +1,5 @@
+error: unexpected arguments
+ --> tests/ui/errors/attr.tuples.refs-tuple.invalid-arg.rs:6:25
+  |
+6 |     #[tuples::refs_tuple(A)]
+  |                         ^^^

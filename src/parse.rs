@@ -10,8 +10,8 @@ use syn::{
 };
 
 use crate::types::{
-    AutoImplInfo, CommonInfo, DebugExpand, FortuplesInfo, Repetition, Template, TemplateElement,
-    TemplatePush,
+    AutoImplInfo, CommonInfo, DebugExpand, FortuplesInfo, RefsMutability, Repetition, Template,
+    TemplateElement, TemplatePush,
 };
 
 enum FortuplesAttr {
@@ -21,6 +21,7 @@ enum FortuplesAttr {
     TupleName((String, Span)),
     MemberName((String, Span)),
     DebugExpand((DebugExpand, Span)),
+    RefsTuple((RefsMutability, Span)),
     External(Attribute),
 }
 
@@ -92,6 +93,19 @@ impl TryFrom<Attribute> for FortuplesAttr {
 
                 Ok(Self::DebugExpand((expand, setting.ident.span())))
             }
+            "refs_tuple" => {
+                let arg = attr.tokens.to_string();
+
+                let mutability = if arg.is_empty() {
+                    RefsMutability::Immutable
+                } else if arg == "(mut)" {
+                    RefsMutability::Mutable
+                } else {
+                    return Err(Error::new(attr.tokens.span(), "unexpected arguments"));
+                };
+
+                Ok(Self::RefsTuple((mutability, setting.ident.span())))
+            }
             _ => Err(Error::new(setting.ident.span(), "unknown setting")),
         }
     }
@@ -118,6 +132,7 @@ impl Parse for CommonInfo {
                 TupleName(tuple_name) => unique!(info.tuple_name = tuple_name),
                 MemberName(member_name) => unique!(info.member_name = member_name),
                 DebugExpand(dbg_expand) => unique!(info.debug_expand = dbg_expand),
+                RefsTuple(refs_tuple) => unique!(info.refs_tuple = refs_tuple),
                 External(attr) => info.attrs.push(attr),
             }
         }

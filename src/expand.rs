@@ -1,7 +1,10 @@
 use std::str::FromStr;
 
 use crate::{
-    types::{AutoImplInfo, CommonInfo, DebugExpand, Repetition, Template, TemplateElement},
+    types::{
+        AutoImplInfo, CommonInfo, DebugExpand, RefsMutability, Repetition, Template,
+        TemplateElement,
+    },
     FortuplesInfo,
 };
 use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
@@ -58,6 +61,11 @@ impl FortuplesInfo {
     ) -> Result<()> {
         let tuple = if members.is_empty() {
             quote!(())
+        } else if let Some((ref mutability, _)) = self.common.refs_tuple {
+            match mutability {
+                RefsMutability::Immutable => quote!((#(&#members),*,)),
+                RefsMutability::Mutable => quote!((#(&mut #members),*,)),
+            }
         } else {
             quote!((#(#members),*,))
         };
@@ -230,6 +238,15 @@ impl AutoImplInfo {
             .clone()
             .map(|(ty, _)| quote!(#[tuples::member_type(#ty)]));
 
+        let refs_tuple_attr =
+            self.common
+                .refs_tuple
+                .clone()
+                .map(|(mutability, _)| match mutability {
+                    RefsMutability::Immutable => quote!(#[tuples::refs_tuple]),
+                    RefsMutability::Mutable => quote!(#[tuples::refs_tuple(mut)]),
+                });
+
         let debug_expand_attr =
             self.common
                 .debug_expand
@@ -263,6 +280,7 @@ impl AutoImplInfo {
                 #[tuples::min_size(#min_size)]
                 #[tuples::max_size(#max_size)]
                 #member_type_attr
+                #refs_tuple_attr
                 #debug_expand_attr
                 impl #impl_generics #trait_name #ty_generics for #tuple_metavar
                 #where_clause

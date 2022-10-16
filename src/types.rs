@@ -14,6 +14,7 @@ pub struct CommonInfo {
     pub member_type: Option<(Type, Span)>,
     pub tuple_name: Option<(String, Span)>,
     pub member_name: Option<(String, Span)>,
+    pub refs_tuple: Option<(RefsMutability, Span)>,
     pub debug_expand: Option<(DebugExpand, Span)>,
 }
 
@@ -125,6 +126,12 @@ impl AutoImplInfo {
 
         Ok(signature)
     }
+}
+
+#[derive(Clone)]
+pub enum RefsMutability {
+    Immutable,
+    Mutable,
 }
 
 #[derive(Clone)]
