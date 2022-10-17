@@ -8,6 +8,9 @@ repository = "https://github.com/mrshiposha/fortuples"
 description = "Macros to generalize inherent and trait implementations over tuples"
 keywords = ["impl", "for", "tuples", "metaprogramming", "trait"]
 
+[package.metadata.docs.rs]
+features = ["debug"]
+
 [lib]
 proc-macro = true
 
