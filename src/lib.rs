@@ -1,6 +1,8 @@
-#![doc = include_str!("../doc/header.md")]
+//! Procedural macros to generalize inherent and trait implementations over tuples.
+//!
+#![doc = include_str!("../doc/badges.md")]
+#![doc = include_str!("../doc/style.html")]
 /*!
-Procedural macros to generalize inherent and trait implementations over tuples.
 
 * [Introduction](#introduction)
 * [Differences from `impl_trait_for_tuples`](#differences-from-impl_trait_for_tuples)
@@ -181,7 +183,7 @@ fortuples! {
         #(#Member: Trait<FixedType = i32>),*
     //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // | A repetition -- the code inside the `#(...),*`
-    // | will expand as many times as the current #Tuple size.
+    // | will expand as many times as as many elements are in the current #Tuple.
     // |
     // | Inside the i-th code fragment, the #Member meta variable will be substituted
     // | by the i-th member type of the current #Tuple.
@@ -372,7 +374,306 @@ mod types;
 use types::{AutoImplInfo, FortuplesInfo};
 
 #[proc_macro]
-/// 🚧📝 Documentation coming soon 📝🚧
+/// A macro for manual generalization of inherent and trait implementations over tuples.
+///
+/// This documentation will provide the macro's syntax and settings details.
+///
+/// If you're looking for an example, please see one
+/// [inside the crate documentation](index.html#fortuples-proc-macro).
+///
+/// * [Syntax](#syntax)
+///     - [Meta variables](#meta-variables)
+///     - [Repetition](#repetition)
+///         - [#Member repetition](#member-repetition)
+///         - [#\<id\> repetition](#id-repetition)
+///         - [Recursion](#recursion)
+/// * [Settings](#settings)
+///     - [min_size](#min_size)
+///     - [max_size](#max_size)
+///     - [tuple_name](#tuple_name)
+///     - [member_name](#member_name)
+///     - [member_type](#member_type)
+///     - [refs_tuple](#refs_tuple)
+///         - [Immutable refs](#immutable-refs)
+///         - [Mutable refs](#mutable-refs)
+///     - [debug_expand](#debug_expand)
+///
+/// ## Syntax
+///
+/// The general syntax looks like the following:
+/// ```ignore
+/// fortuples! {
+///     |optional: fortuples! settings and other attributes|
+///
+///     |optional unsafe| impl |optional generics| |implementation body|
+/// }
+/// ```
+///
+/// The macro will expand the provided code several times for different tuple variety --
+/// `()`, `(Member0,)`, `(Member0, Member1)`, and so on.
+///
+/// #### Meta variables
+/// The macro provides several meta variables which can be used inside the `|implementation body|`:
+/// * `#Tuple` expands to the current tuple -- `()`, `(Member0,)`, `(Member0, Member1)`, ...
+/// * `#len(Tuple)` expands to the current tuple's length:
+///
+/// | #Tuple               |  #len(Tuple)  |
+/// | -------------------- | ------------- |
+/// | `()`                 |  `0usize`     |
+/// | `(Member0,)`         |  `1usize`     |
+/// | `(Member0, Member1)` |  `2usize`     |
+/// |         ...          |     ...       |
+///
+/// * `#Member` expands to the current tuple's member type. Can be used within a repetition only (see below).
+/// * `#<id>` (where `<id>` is an arbitrary identifier)
+/// expands the `id` as if it is was a tuple variable.
+/// Can be used within a repetition only (see below).
+///
+/// #### Repetition
+/// Repetition is done using `#(...)*` or `#(...),*` (or `#(...)<separator>*` in general).
+///
+/// It expands the code within the parentheses as many times as many elements are in the current tuple
+/// separated by the `<separator>` if provided.
+/// > _Note: when using comma as a separator the macro will always leave the trailing comma._
+///
+/// For instance, `#(println!("Hi");)*` will expand for different tuple varities like the following:
+///
+/// | #Tuple               | #(println!("Hi");)*                                  |
+/// | -------------------- | ---------------------------------------------------- |
+/// | `()`                 |                                                      |
+/// | `(Member0,)`         |  `println!("Hi");`                                   |
+/// | `(Member0, Member1)` |  `println!("Hi"); println!("Hi");`                   |
+/// |         ...          |                        ...                           |
+///
+/// ----
+///
+/// ###### #Member repetition
+///
+/// The meta variable `#Member` expands like the following:
+///
+/// | #Tuple               | #(#Member),*                                         |
+/// | -------------------- | ---------------------------------------------------- |
+/// | `()`                 |                                                      |
+/// | `(Member0,)`         |  `Member0,`                                          |
+/// | `(Member0, Member1)` |  `Member0, Member1,`                                 |
+/// |         ...          |                        ...                           |
+///
+/// ----
+///
+/// ###### #\<id\> repetition
+///
+/// The meta variable `#<id>` expands like the following:
+///
+///
+/// | #Tuple               | #(#\<id\>),*                                         |
+/// | -------------------- | ---------------------------------------------------- |
+/// | `()`                 |                                                      |
+/// | `(Member0,)`         |  `<id>.0,`                                           |
+/// | `(Member0, Member1)` |  `<id>.0, <id>.1,`                                   |
+/// |         ...          |                        ...                           |
+///
+/// ###### Recursion
+/// You can do a repetition recursively:
+///
+/// | #Tuple               | vec![ #(vec![  #(#myvar),\*  ]),\* ]                       |
+/// | -------------------- | ---------------------------------------------------------- |
+/// | `()`                 |                                                            |
+/// | `(Member0,)`         |  `vec![vec![myvar.0,],]`                                   |
+/// | `(Member0, Member1)` |  `vec![vec![myvar.0, myvar.1,], vec![myvar.0, myvar.1,],]` |
+/// |         ...          |                        ...                                 |
+///
+/// ## Settings
+///
+/// #### min_size
+/// `#[tuples::min_size]` sets the length of the first tuple. By default it equals to `0`.
+///
+/// ```
+/// # use fortuples::fortuples;
+/// trait Trait {}
+///
+/// fortuples! {
+/// #   #[tuples::debug_expand(path = "doc/expand/fortuples_min_size.rs")]
+///     #[tuples::min_size(2)]
+///     impl Trait for #Tuple {}
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/fortuples_min_size.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### max_size
+/// `#[tuples::max_size]` sets the length of the last tuple. By default it equals to `16`.
+///
+/// ```
+/// # use fortuples::fortuples;
+/// trait Trait {}
+///
+/// fortuples! {
+/// #   #[tuples::debug_expand(path = "doc/expand/fortuples_max_size.rs")]
+///     #[tuples::max_size(4)]
+///     impl Trait for #Tuple {}
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/fortuples_max_size.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### tuple_name
+/// `#[tuples::tuple_name]` sets the name of the meta variable that represents the current tuple.
+///
+/// It is `Tuple` by default.
+///
+/// ```
+/// # use fortuples::fortuples;
+/// struct Vector<T>(T);
+///
+/// fortuples! {
+/// #   #[tuples::debug_expand(path = "doc/expand/tuple_name.rs")]
+///     #[tuples::tuple_name(Coords)]
+///     #[tuples::min_size(2)]
+///     #[tuples::max_size(3)]
+///     impl Vector<#Coords> {}
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # struct Vector<T>(T);
+#[doc = include_str!("../doc/expand/tuple_name.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### member_name
+/// `#[tuples::member_name]` sets the name of the meta variable that represents
+/// the current tuple's member type.
+///
+/// It is `Member` by default.
+///
+/// ```
+/// # use fortuples::fortuples;
+/// struct Vector<T>(T);
+///
+/// fortuples! {
+/// #   #[tuples::debug_expand(path = "doc/expand/member_name.rs")]
+///     #[tuples::tuple_name(Coords)]
+///     #[tuples::member_name(CoordT)]
+///     #[tuples::min_size(2)]
+///     #[tuples::max_size(3)]
+///     impl Vector<#Coords>
+///     where
+///         #(#CoordT: Into<f32>),*
+///     {}
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # struct Vector<T>(T);
+#[doc = include_str!("../doc/expand/member_name.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### member_type
+/// `#[tuples::member_type]` sets all member types to a specific type.
+///
+/// ```
+/// # use fortuples::fortuples;
+/// struct Vector<T>(T);
+///
+/// fortuples! {
+/// #   #[tuples::debug_expand(path = "doc/expand/member_type.rs")]
+///     #[tuples::tuple_name(Coords)]
+///     #[tuples::member_type(f32)]
+///     #[tuples::min_size(2)]
+///     #[tuples::max_size(3)]
+///     impl Vector<#Coords> {}
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # struct Vector<T>(T);
+#[doc = include_str!("../doc/expand/member_type.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### refs_tuple
+/// `#[tuples::refs_tuple]` adds references to each member type inside the current tuple.
+///
+/// ###### Immutable refs
+///
+/// ```
+/// # use fortuples::fortuples;
+/// trait Trait {}
+///
+/// fortuples! {
+/// #   #[tuples::debug_expand(path = "doc/expand/fortuples_refs_tuple.rs")]
+///     #[tuples::refs_tuple]
+///     impl Trait for #Tuple {}
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/fortuples_refs_tuple.rs")]
+/// ```
+///
+/// </details>
+///
+/// ###### Mutable refs
+///
+/// ```
+/// # use fortuples::fortuples;
+/// trait Trait {}
+///
+/// fortuples! {
+/// #   #[tuples::debug_expand(path = "doc/expand/fortuples_refs_tuple_mut.rs")]
+///     #[tuples::refs_tuple(mut)]
+///     impl Trait for #Tuple {}
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/fortuples_refs_tuple_mut.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### debug_expand
+///
+/// TODO
+///
+#[doc = include_str!("../doc/style.html")]
 pub fn fortuples(item: TokenStream) -> TokenStream {
     let info = parse_macro_input!(item as FortuplesInfo);
 
@@ -384,7 +685,8 @@ pub fn fortuples(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-/// 🚧📝 Documentation coming soon 📝🚧
+/// A macro for generating full-automatic trait implementations for tuples
+#[doc = include_str!("../doc/style.html")]
 pub fn auto_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     if !attr.is_empty() {
         return Error::new(
