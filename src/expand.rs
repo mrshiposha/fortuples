@@ -184,7 +184,7 @@ impl FortuplesInfo {
             }
 
             if let Some(ref separator) = rep.separator {
-                if i < members.len() - 1 {
+                if i < members.len() - 1 || separator.as_char() == ',' {
                     tokens.append(separator.clone());
                 }
             }
