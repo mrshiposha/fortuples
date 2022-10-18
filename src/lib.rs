@@ -2,6 +2,12 @@
 /*!
 Procedural macros to generalize inherent and trait implementations over tuples.
 
+* [Introduction](#introduction)
+* [Differences from `impl_trait_for_tuples`](#differences-from-impl_trait_for_tuples)
+* [Examples](#examples)
+
+## Introduction
+
 When it is a need to implement either a trait
 or a generalized type for a combination of tuples,
 Rust requires separate implementations to be provided for each tuple variety manually.
@@ -12,8 +18,121 @@ This macro will expand the provided code template for each tuple variety.
 Also, there is an attribute macro [`#[auto_impl]`](macro@auto_impl) that implements a given trait
 for tuple combinations in a full automatic way.
 
+_This crate is inspired by the [`impl_trait_for_tuples`](https://docs.rs/impl-trait-for-tuples/latest/impl_trait_for_tuples/)._
+
 ----
-This crate is inspired by [impl_trait_for_tuples](https://docs.rs/impl-trait-for-tuples/latest/impl_trait_for_tuples/).
+
+## Differences from `impl_trait_for_tuples`
+
+##### You can write inherent implementations
+```
+# use fortuples::fortuples;
+struct Vector<T>(T);
+
+fortuples! {
+    #[tuples::member_type(f32)]
+    #[tuples::min_size(2)]
+    #[tuples::max_size(3)]
+    #[tuples::tuple_name(Coords)]
+    impl Vector<#Coords> {
+        fn length(&self) -> f32 {
+            let coords = &self.0;
+
+            (#(#coords * #coords)+*).sqrt()
+        }
+    }
+}
+```
+
+----
+
+##### You don't need to use a custom keyword `for_tuples!` inside the implementation body
+
+Instead, the [`fortuples!`] macro follows the [`quote!`](https://docs.rs/quote/latest/quote/)-like syntax without extra tokens.
+
+```
+trait Trait {
+    type Ret;
+    type Arg;
+
+    fn test(arg: Self::Arg) -> Self::Ret;
+}
+```
+
+###### impl_trait_for_tuples
+
+```
+# use impl_trait_for_tuples::impl_for_tuples;
+# trait Trait {
+#    type Ret;
+#    type Arg;
+#
+#    fn test(arg: Self::Arg) -> Self::Ret;
+# }
+
+#[impl_for_tuples(5)]
+impl Trait for Tuple {
+    for_tuples!( type Ret = ( #( Tuple::Ret ),* ); );
+    for_tuples!( type Arg = ( #( Tuple::Arg ),* ); );
+
+    fn test(arg: Self::Arg) -> Self::Ret {
+        for_tuples!( ( #( Tuple::test(arg.Tuple) ),* ) )
+    }
+}
+```
+
+###### fortuples
+
+```
+# use fortuples::fortuples;
+# trait Trait {
+#    type Ret;
+#    type Arg;
+#
+#    fn test(arg: Self::Arg) -> Self::Ret;
+# }
+
+fortuples! {
+    #[tuples::max_size(5)] // <-- optional, default = 16
+    impl Trait for #Tuple
+    where
+        #(#Member: Trait),*
+    {
+        type Ret = ( #(#Member::Ret),* );
+        type Arg = ( #(#Member::Arg),* );
+
+        fn test(arg: Self::Arg) -> Self::Ret {
+            ( #(#Member::test(#arg)),* )
+        }
+    }
+}
+```
+
+----
+
+##### Separate attribute macro for full-automatic implementation
+
+###### impl_trait_for_tuples
+
+```
+# use impl_trait_for_tuples::impl_for_tuples;
+#[impl_for_tuples(5)]
+trait Notify {
+    fn notify(&self);
+}
+```
+
+###### fortuples::auto_impl
+
+```
+#[fortuples::auto_impl]
+#[tuples::max_size(5)] // <-- optional, default = 16
+trait Notify {
+    fn notify(&self);
+}
+```
+
+----
 
 ## Examples
 
@@ -69,17 +188,11 @@ fortuples! {
     {
         // The `Ret` type will be a tuple consisting of the `Ret` types
         // from the current #Tuple member types
-        type Ret = (#(#Member::Ret),*,);
-        // +-------------------------^
-        // | The trailing comma is important for a #Tuple of size 1.
-        // | Because a type `(T)` is equivalent to `T`.
-        // |
-        // | To get a tuple of `T` of size 1 we need to write `(T,)`.
-        // | The same applies to expressions.
+        type Ret = (#(#Member::Ret),*);
 
         // The `Arg` type will be a tuple consisting of the `Arg` types
         // from the current #Tuple member types
-        type Arg = (#(#Member::Arg),*,);
+        type Arg = (#(#Member::Arg),*);
 
         // The `VALUE` will be a sum of all `VALUE`s of the #Tuple member types.
         const VALUE: i32 = #(#Member::VALUE)+*;
@@ -93,7 +206,7 @@ fortuples! {
         type FixedType = i32;
 
         fn test_assoc_fn(arg: Self::Arg) -> Self::Ret {
-            ( #(#Member::test_assoc_fn(#arg)),*, )
+            ( #(#Member::test_assoc_fn(#arg)),* )
             // +----------------------- ^^^
             // | Any identifier after the `#` sign that is neither
             // | #Tuple, #Member nor #len(Tuple)
@@ -152,9 +265,9 @@ fortuples! {
     where
         #(#Member: Trait<FixedType = i32>),*
     {
-        type Ret = (#(#Member::Ret),*,);
+        type Ret = (#(#Member::Ret),*);
 
-        type Arg = (#(#Member::Arg),*,);
+        type Arg = (#(#Member::Arg),*);
 
         const VALUE: i32 = #(#Member::VALUE)+*;
 
@@ -163,7 +276,7 @@ fortuples! {
         type FixedType = i32;
 
         fn test_assoc_fn(arg: Self::Arg) -> Self::Ret {
-            ( #(#Member::test_assoc_fn(#arg)),*, )
+            ( #(#Member::test_assoc_fn(#arg)),* )
         }
 
         fn test_self_fn(&self) -> Result<(), ()> {
@@ -220,7 +333,7 @@ in a full automatic way using the [`auto_impl`](macro@auto_impl) attribute.
 This attribute will automatically generate implementations of the given trait
 for tuple combinations.
 
-To view the example's macro expansion click [here](#auto-impl-macro-expansion).
+To view the example's macro expansion click [here](#auto_impl-proc-macro-expansion).
 
 _See the [`auto_impl`](macro@auto_impl) documentation to learn about the
 attribute's settings and limitations._
@@ -228,8 +341,8 @@ attribute's settings and limitations._
 ```
 #[fortuples::auto_impl]
 # #[tuples::debug_expand(path = "doc/expand/auto_impl.rs")]
-trait Notify {
-    fn notify(&self, a: i32, b: &f32);
+trait AutoImplTrait {
+    fn test(&self, a: i32, b: &f32);
 }
 ```
 */
@@ -241,8 +354,8 @@ trait Notify {
 #### [`auto_impl`](macro@auto_impl) proc-macro expansion
 
 ```
-# trait Notify {
-#    fn notify(&self, a: i32, b: &f32);
+# trait AutoImplTrait {
+#    fn test(&self, a: i32, b: &f32);
 # }
 */
 #![doc = include_str!("../doc/expand/auto_impl.rs")]

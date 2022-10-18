@@ -24,3 +24,4 @@ proc-macro2 = "1.0.46"
 
 [dev-dependencies]
 trybuild = "1.0.71"
+impl-trait-for-tuples = "0.2.2"
