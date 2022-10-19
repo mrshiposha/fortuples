@@ -293,7 +293,6 @@ fortuples! {
 </details>
 */
 
-
 /*!
  <details>
  <summary>Show the macro expansion</summary>
