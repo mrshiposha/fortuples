@@ -88,12 +88,15 @@ impl Args for i32 {
 
 #[fortuples::auto_impl]
 #[tuples::max_size(2)]
-trait Generalized<'a, T: Clone, U> {
-    fn foo_gen<'f, F>(&self, t: T, u: &'a U, f: &'f mut F);
+trait Generalized<'a, T, U: From<i32>>
+where
+    T: Clone,
+{
+    fn foo_gen<'f, F: From<i32>>(&self, t: T, u: &'a U, f: &'f mut F);
 
     fn bar_gen<'b, B>(t: T, u: &'a U, f: &'b B)
     where
-        B: Clone;
+        B: From<i32>;
 }
 
 #[fortuples::auto_impl]

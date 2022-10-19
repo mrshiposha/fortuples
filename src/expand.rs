@@ -271,7 +271,13 @@ impl AutoImplInfo {
             let bounds = quote!(#pound (#pound Member: #trait_name #ty_generics),*);
 
             where_clause
-                .map(|where_clause| quote!(#where_clause, #bounds))
+                .map(|where_clause| {
+                    if where_clause.predicates.trailing_punct() {
+                        quote!(#where_clause #bounds)
+                    } else {
+                        quote!(#where_clause, #bounds)
+                    }
+                })
                 .unwrap_or_else(|| quote!(where #bounds))
         } else {
             quote!(#where_clause)
