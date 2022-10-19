@@ -671,7 +671,33 @@ use types::{AutoImplInfo, FortuplesInfo};
 ///
 /// #### debug_expand
 ///
-/// TODO
+/// `#[tuples::debug_expand]` will print the macro expansion.
+///
+/// The expansion can be printed either to stdout or to a file.
+/// * `#[tuples::debug_expand]` prints to stdout.
+/// * `#[tuples::debug_expand(path = "<filepath>")]` prints to the file specified by the `<filepath>`.
+///
+/// All the macro expansions provided in this documentation were obtained using this setting.
+///
+/// >_Note: the macro expansion will be printed only if the `debug` feature is enabled._
+///
+/// ```
+/// # use fortuples::fortuples;
+/// trait Trait {}
+///
+/// fortuples! {
+///     #[tuples::debug_expand(path = "doc/expand/fortuples_debug_expand.rs")]
+///     impl Trait for #Tuple {}
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/fortuples_debug_expand.rs")]
+/// ```
 ///
 #[doc = include_str!("../doc/style.html")]
 pub fn fortuples(item: TokenStream) -> TokenStream {
