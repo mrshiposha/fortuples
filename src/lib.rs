@@ -172,7 +172,9 @@ fortuples! {
     #[tuples::min_size(1)]
     // +----- ^^^^^^^^^^^
     // | The `fortuples!` macro will generate implementations starting with the empty tuple.
-    // | Due to the `min_size` setting, the implementations will start from the `(Member0,)` tuple.
+    // |
+    // | Due to the `min_size` setting,
+    // | the implementations will start from the `(Member0,)` tuple.
 
     impl Trait for #Tuple
     // +----------- ^^^^^
@@ -203,7 +205,7 @@ fortuples! {
 
         const LENGTH: usize = #len(Tuple);
         // +----------------- ^^^^^^^^^^^
-        // | This will expands to the current #Tuple length.
+        // | This expands to the current #Tuple length.
 
         type FixedType = i32;
 
