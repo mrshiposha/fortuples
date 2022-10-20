@@ -24,7 +24,7 @@ _This crate is inspired by the [`impl_trait_for_tuples`](https://docs.rs/impl-tr
 ## Differences from `impl_trait_for_tuples`
 
 ##### You can write inherent implementations
-```
+```rust
 struct Vector<T>(T);
 
 fortuples! {
@@ -48,7 +48,7 @@ fortuples! {
 
 Instead, the `fortuples!` macro follows the [`quote!`](https://docs.rs/quote/latest/quote/)-like syntax without extra tokens.
 
-```
+```rust
 trait Trait {
     type Ret;
     type Arg;
@@ -59,7 +59,7 @@ trait Trait {
 
 ###### impl_trait_for_tuples
 
-```
+```rust
 #[impl_for_tuples(5)]
 impl Trait for Tuple {
     for_tuples!( type Ret = ( #( Tuple::Ret ),* ); );
@@ -73,7 +73,7 @@ impl Trait for Tuple {
 
 ###### fortuples
 
-```
+```rust
 fortuples! {
     #[tuples::max_size(5)] // <-- optional, default = 16
     impl Trait for #Tuple
@@ -96,7 +96,7 @@ fortuples! {
 
 ###### impl_trait_for_tuples
 
-```
+```rust
 #[impl_for_tuples(5)]
 trait Notify {
     fn notify(&self);
@@ -105,7 +105,7 @@ trait Notify {
 
 ###### fortuples::auto_impl
 
-```
+```rust
 #[fortuples::auto_impl]
 #[tuples::max_size(5)] // <-- optional, default = 16
 trait Notify {
@@ -125,7 +125,7 @@ You can also view the example [without comments](#fortuples-proc-macro-without-c
 
 _See the [`fortuples!`](https://docs.rs/fortuples/latest/fortuples/macro.fortuples.html) macro documentation to learn about the macro settings (like `#[tuples::min_size]`)._
 
-```
+```rust
 trait Trait {
     type Ret;
 
@@ -218,7 +218,7 @@ fortuples! {
 
 #### `fortuples!` proc-macro (without comments)
 
-```
+```rust
 trait Trait {
     type Ret;
 
@@ -278,7 +278,7 @@ for tuple combinations.
 _See the [`auto_impl`](https://docs.rs/fortuples/latest/fortuples/attr.auto_impl.html) documentation to learn about the
 attribute's settings and limitations._
 
-```
+```rust
 #[fortuples::auto_impl]
 trait AutoImplTrait {
     fn test(&self, a: i32, b: &f32);
