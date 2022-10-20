@@ -12,7 +12,7 @@ Procedural macros to generalize inherent and trait implementations over tuples.
 When it is a need to implement either a trait or a generalized type for a combination of tuples,
 Rust requires separate implementations to be provided for each tuple variety manually.
 
-This crate provides a proc-macro `fortuples!` to write code templates similar to the [`quote!`](https://docs.rs/quote/latest/quote/) macro.
+This crate provides a proc-macro `fortuples!` to write code templates similar to the [`quote!`](https://github.com/dtolnay/quote) macro.
 This macro will expand the provided code template for each tuple variety.
 
 Also, an attribute macro `#[auto_impl]` that implements a given trait for tuple combinations in a completely automatic way.
@@ -46,7 +46,7 @@ fortuples! {
 
 ##### You don't need to use a custom keyword `for_tuples!` inside the implementation body
 
-Instead, the `fortuples!` macro follows the [`quote!`](https://docs.rs/quote/latest/quote/)-like syntax without extra tokens.
+Instead, the `fortuples!` macro follows the [`quote!`](https://github.com/dtolnay/quote)-like syntax without extra tokens.
 
 ```rust
 trait Trait {
