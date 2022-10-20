@@ -121,8 +121,6 @@ trait Notify {
 
 Here is commented example of `fortuples!` usage.
 
-You can also view the example [without comments](#fortuples-proc-macro-without-comments) to see how the macro could look in the wild.
-
 _See the [`fortuples!`](https://docs.rs/fortuples/latest/fortuples/macro.fortuples.html) macro documentation to learn about the macro settings (like `#[tuples::min_size]`)._
 
 ```rust
