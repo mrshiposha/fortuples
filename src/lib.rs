@@ -17,8 +17,8 @@ Rust requires separate implementations to be provided for each tuple variety man
 This crate provides a proc-macro [`fortuples!`] to write code templates similar to the [`quote!`](https://docs.rs/quote/latest/quote/) macro.
 This macro will expand the provided code template for each tuple variety.
 
-Also, there is an attribute macro [`#[auto_impl]`](macro@auto_impl) that implements a given trait
-for tuple combinations in a full automatic way.
+Also, an attribute macro [`#[auto_impl]`](macro@auto_impl) that implements a given trait
+for tuple combinations in a completely automatic way.
 
 _This crate is inspired by the [`impl_trait_for_tuples`](https://docs.rs/impl-trait-for-tuples/latest/impl_trait_for_tuples/)._
 
@@ -142,9 +142,9 @@ trait Notify {
 
 Here is commented example of [`fortuples!`] usage.
 
-You can also view the example [without comments](#fortuples-proc-macro-without-comments).
+You can also view the example [without comments](#fortuples-proc-macro-without-comments) to see how the macro could look in the wild.
 
-And the example's [macro expansion](#fortuples-proc-macro-expansion).
+You can find the example's macro expansion [here](#fortuples-proc-macro-expansion).
 
 _See the [fortuples!] macro documentation to learn about the macro settings (like `#[tuples::min_size]`)._
 
@@ -171,21 +171,21 @@ fortuples! {
 #   #[tuples::debug_expand(path = "doc/expand/fortuples.rs")]
     #[tuples::min_size(1)]
     // +----- ^^^^^^^^^^^
-    // | The fortuples! macro will start from the empty tuple by default.
-    // | Now it will start from the `(Member0,)` tuple.
+    // | The `fortuples!` macro will generate implementations starting with the empty tuple.
+    // | Due to the `min_size` setting, the implementations will start from the `(Member0,)` tuple.
 
     impl Trait for #Tuple
     // +----------- ^^^^^
-    // | a meta variable that will expand to
+    // | a meta-variable that will expand to
     // | `(Member0,)`, `(Member0, Member1)`, and so on.
 
     where
         #(#Member: Trait<FixedType = i32>),*
     //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // | A repetition -- the code inside the `#(...),*`
-    // | will expand as many times as as many elements are in the current #Tuple.
+    // | will expand as many times as many elements are in the current #Tuple.
     // |
-    // | Inside the i-th code fragment, the #Member meta variable will be substituted
+    // | Inside the i-th code fragment, the #Member meta-variable will be substituted
     // | by the i-th member type of the current #Tuple.
     {
         // The `Ret` type will be a tuple consisting of the `Ret` types
@@ -199,11 +199,11 @@ fortuples! {
         // The `VALUE` will be a sum of all `VALUE`s of the #Tuple member types.
         const VALUE: i32 = #(#Member::VALUE)+*;
         // +------------------------------- ^
-        // | Note that the `VALUE`s are separated by a `+` sign.
+        // | Note that a `+` sign separates the `VALUE`s.
 
         const LENGTH: usize = #len(Tuple);
         // +----------------- ^^^^^^^^^^^
-        // | This will be expanded to the current #Tuple length.
+        // | This will expands to the current #Tuple length.
 
         type FixedType = i32;
 
@@ -211,7 +211,7 @@ fortuples! {
             ( #(#Member::test_assoc_fn(#arg)),* )
             // +----------------------- ^^^
             // | Any identifier after the `#` sign that is neither
-            // | #Tuple, #Member nor #len(Tuple)
+            // | #Tuple, #Member, nor #len(Tuple)
             // | is interpreted as a tuple variable.
             // |
             // | So the above code will expand like this:
@@ -223,7 +223,7 @@ fortuples! {
             // |        MemberN::test_assoc_fn(arg.N),
             // |    )
             // | ```
-            // | where `N` = `#len(Tuple)`
+            // | where `N` equals `#len(Tuple)`
         }
 
         fn test_self_fn(&self) -> Result<(), ()> {
@@ -329,12 +329,12 @@ fortuples! {
 #### [`auto_impl`](macro@auto_impl) attribute
 
 There is an option to implement a trait
-in a full automatic way using the [`auto_impl`](macro@auto_impl) attribute.
+in a completely automatic way using the [`auto_impl`](macro@auto_impl) attribute.
 
 This attribute will automatically generate implementations of the given trait
 for tuple combinations.
 
-To view the example's macro expansion click [here](#auto_impl-proc-macro-expansion).
+To view the example's macro expansion, click [here](#auto_impl-proc-macro-expansion).
 
 _See the [`auto_impl`](macro@auto_impl) documentation to learn about the
 attribute's settings and limitations._
@@ -381,7 +381,7 @@ use types::{AutoImplInfo, FortuplesInfo};
 /// [inside the crate documentation](index.html#fortuples-proc-macro).
 ///
 /// * [Syntax](#syntax)
-///     - [Meta variables](#meta-variables)
+///     - [Meta-variables](#meta-variables)
 ///     - [Repetition](#repetition)
 ///         - [#Member repetition](#member-repetition)
 ///         - [#\<id\> repetition](#id-repetition)
@@ -408,11 +408,11 @@ use types::{AutoImplInfo, FortuplesInfo};
 /// }
 /// ```
 ///
-/// The macro will expand the provided code several times for different tuple variety --
+/// The macro will expand the provided code several times for different tuple varieties --
 /// `()`, `(Member0,)`, `(Member0, Member1)`, and so on.
 ///
-/// #### Meta variables
-/// The macro provides several meta variables which can be used inside the `|implementation body|`:
+/// #### Meta-variables
+/// The macro provides several meta-variables which can be used inside the `|implementation body|`:
 /// * `#Tuple` expands to the current tuple -- `()`, `(Member0,)`, `(Member0, Member1)`, ...
 /// * `#len(Tuple)` expands to the current tuple's length:
 ///
@@ -423,19 +423,19 @@ use types::{AutoImplInfo, FortuplesInfo};
 /// | `(Member0, Member1)` |  `2usize`     |
 /// |         ...          |     ...       |
 ///
-/// * `#Member` expands to the current tuple's member type. Can be used within a repetition only (see below).
+/// * `#Member` expands to the current tuple's member type. It can be used within a repetition only (see below).
 /// * `#<id>` (where `<id>` is an arbitrary identifier)
-/// expands the `id` as if it is was a tuple variable.
-/// Can be used within a repetition only (see below).
+/// expands the `id` as if it were a tuple variable.
+/// It can be used within a repetition only (see below).
 ///
 /// #### Repetition
 /// Repetition is done using `#(...)*` or `#(...),*` (or `#(...)<separator>*` in general).
 ///
-/// It expands the code within the parentheses as many times as many elements are in the current tuple
+/// It expands the code within the parentheses as often as many elements are in the current tuple
 /// separated by the `<separator>` if provided.
-/// > _Note: when using comma as a separator the macro will always leave the trailing comma._
+/// > _Note: when using a comma as a separator, the macro always leaves the trailing comma._
 ///
-/// For instance, `#(println!("Hi");)*` will expand for different tuple varities like the following:
+/// For instance, `#(println!("Hi");)*` will expand for different tuple varieties like the following:
 ///
 /// | #Tuple               | #(println!("Hi");)*                                  |
 /// | -------------------- | ---------------------------------------------------- |
@@ -448,7 +448,7 @@ use types::{AutoImplInfo, FortuplesInfo};
 ///
 /// ###### #Member repetition
 ///
-/// The meta variable `#Member` expands like the following:
+/// The meta-variable `#Member` expands like the following:
 ///
 /// | #Tuple               | #(#Member),*                                         |
 /// | -------------------- | ---------------------------------------------------- |
@@ -461,7 +461,7 @@ use types::{AutoImplInfo, FortuplesInfo};
 ///
 /// ###### #\<id\> repetition
 ///
-/// The meta variable `#<id>` expands like the following:
+/// The meta-variable `#<id>` expands like the following:
 ///
 ///
 /// | #Tuple               | #(#\<id\>),*                                         |
@@ -484,7 +484,7 @@ use types::{AutoImplInfo, FortuplesInfo};
 /// ## Settings
 ///
 /// #### min_size
-/// `#[tuples::min_size]` sets the length of the first tuple. By default it equals to `0`.
+/// `#[tuples::min_size]` sets the length of the first tuple. By default, it equals `0`.
 ///
 /// ```
 /// # use fortuples::fortuples;
@@ -508,7 +508,7 @@ use types::{AutoImplInfo, FortuplesInfo};
 /// </details>
 ///
 /// #### max_size
-/// `#[tuples::max_size]` sets the length of the last tuple. By default it equals to `16`.
+/// `#[tuples::max_size]` sets the length of the last tuple. By default, it equals `16`.
 ///
 /// ```
 /// # use fortuples::fortuples;
@@ -532,7 +532,7 @@ use types::{AutoImplInfo, FortuplesInfo};
 /// </details>
 ///
 /// #### tuple_name
-/// `#[tuples::tuple_name]` sets the name of the meta variable that represents the current tuple.
+/// `#[tuples::tuple_name]` sets the name of the meta-variable that represents the current tuple.
 ///
 /// It is `Tuple` by default.
 ///
@@ -560,7 +560,7 @@ use types::{AutoImplInfo, FortuplesInfo};
 /// </details>
 ///
 /// #### member_name
-/// `#[tuples::member_name]` sets the name of the meta variable that represents
+/// `#[tuples::member_name]` sets the name of the meta-variable that represents
 /// the current tuple's member type.
 ///
 /// It is `Member` by default.
@@ -672,13 +672,13 @@ use types::{AutoImplInfo, FortuplesInfo};
 ///
 /// `#[tuples::debug_expand]` will print the macro expansion.
 ///
-/// The expansion can be printed either to stdout or to a file.
+/// The expansion can be printed either to stdout or a file.
 /// * `#[tuples::debug_expand]` prints to stdout.
 /// * `#[tuples::debug_expand(path = "<filepath>")]` prints to the file specified by the `<filepath>`.
 ///
 /// All the macro expansions provided in this documentation were obtained using this setting.
 ///
-/// >_Note: the macro expansion will be printed only if the `debug` feature is enabled._
+/// >_Note: the `#[tuples::debug_expand]` prints the macro expansion only if the `debug` feature is enabled._
 ///
 /// ```
 /// # use fortuples::fortuples;
@@ -761,7 +761,7 @@ pub fn fortuples(item: TokenStream) -> TokenStream {
 /// * Trait functions can't have a return type.
 /// * There should be no associated types.
 /// * There should be no associated constants.
-/// * Only identifiers or wildcards can be provided as arguments.
+/// * The functions' arguments can be only identifiers or wildcards.
 ///
 /// ```compile_fail
 /// #[fortuples::auto_impl]
@@ -804,7 +804,7 @@ pub fn fortuples(item: TokenStream) -> TokenStream {
 /// ## Settings
 ///
 /// #### min_size
-/// `#[tuples::min_size]` sets the length of the first tuple. By default it equals to `0`.
+/// `#[tuples::min_size]` sets the length of the first tuple. By default, it equals `0`.
 ///
 /// ```
 /// #[fortuples::auto_impl]
@@ -824,7 +824,7 @@ pub fn fortuples(item: TokenStream) -> TokenStream {
 /// </details>
 ///
 /// #### max_size
-/// `#[tuples::max_size]` sets the length of the last tuple. By default it equals to `16`.
+/// `#[tuples::max_size]` sets the length of the last tuple. By default, it equals `16`.
 ///
 /// ```
 /// #[fortuples::auto_impl]
@@ -887,13 +887,13 @@ pub fn fortuples(item: TokenStream) -> TokenStream {
 /// #### debug_expand
 /// `#[tuples::debug_expand]` will print the macro expansion.
 ///
-/// The expansion can be printed either to stdout or to a file.
+/// The expansion can be printed either to stdout or a file.
 /// * `#[tuples::debug_expand]` prints to stdout.
 /// * `#[tuples::debug_expand(path = "<filepath>")]` prints to the file specified by the `<filepath>`.
 ///
 /// All the macro expansions provided in this documentation were obtained using this setting.
 ///
-/// >_Note: the macro expansion will be printed only if the `debug` feature is enabled._
+/// >_Note: the `#[tuples::debug_expand]` prints the macro expansion only if the `debug` feature is enabled._
 ///
 /// ```
 /// #[fortuples::auto_impl]
