@@ -698,6 +698,7 @@ use types::{AutoImplInfo, FortuplesInfo};
 #[doc = include_str!("../doc/expand/fortuples_debug_expand.rs")]
 /// ```
 ///
+/// </details>
 #[doc = include_str!("../doc/style.html")]
 pub fn fortuples(item: TokenStream) -> TokenStream {
     let info = parse_macro_input!(item as FortuplesInfo);
@@ -710,7 +711,205 @@ pub fn fortuples(item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-/// A macro for generating full-automatic trait implementations for tuples
+/// An attribute macro for generating full-automatic trait implementations for tuples.
+///
+/// * [Syntax](#syntax)
+/// * [Limitations](#limitations)
+/// * [Settings](#settings)
+///     - [min_size](#min_size)
+///     - [max_size](#max_size)
+///     - [refs_tuple](#refs_tuple)
+///         - [Immutable refs](#immutable-refs)
+///         - [Mutable refs](#mutable-refs)
+///     - [debug_expand](#debug_expand)
+///
+/// ## Syntax
+///
+/// Just place the `#[fortuples::auto_impl]` attribute in front of a trait.
+///
+/// ```
+/// #[fortuples::auto_impl]
+/// # #[tuples::debug_expand(path = "doc/expand/auto_impl_syntax.rs")]
+/// trait Trait {
+///     fn no_args();
+///
+///     // Note that non-reference arguments should implement the `Clone` trait.
+///     fn assoc_fn_args<T: Clone, U>(non_ref_arg: T, ref_arg: &U);
+///
+///     // Note that non-reference arguments should implement the `Clone` trait.
+///     // But it's not required for `self`.
+///     fn self_fn_args<T: Clone, U>(self, non_ref_arg: T, ref_arg: &U);
+/// }
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {
+/// #    fn no_args();
+/// #    fn assoc_fn_args<T: Clone, U>(non_ref_arg: T, ref_arg: &U);
+/// #    fn self_fn_args<T: Clone, U>(self, non_ref_arg: T, ref_arg: &U);
+/// # }
+#[doc = include_str!("../doc/expand/auto_impl_syntax.rs")]
+/// ```
+///
+/// </details>
+///
+/// ## Limitations
+///
+/// * Trait functions can't have a return type.
+/// * There should be no associated types.
+/// * There should be no associated constants.
+/// * Only identifiers or wildcards can be provided as arguments.
+///
+/// ```compile_fail
+/// #[fortuples::auto_impl]
+/// trait Trait {
+///     // OK
+///     fn ident_and_wildcard(arg: i32, _: char);
+///
+///     // NOT OK
+///     fn tuple_destruct((a, b): (i32, char));
+/// }
+/// ```
+///
+/// * There should be no macro calls inside the trait itself.
+///
+/// ```compile_fail
+/// macro_rules! some_macro {
+///     () => {};
+/// }
+///
+/// #[fortuples::auto_impl]
+/// trait Trait {
+///     some_macro!();
+/// }
+/// ```
+///
+/// However, macro calls are allowed inside the default implementations.
+/// ```
+/// macro_rules! some_macro {
+///     () => {};
+/// }
+///
+/// #[fortuples::auto_impl]
+/// trait Trait {
+///     fn test() {
+///         some_macro!();
+///     }
+/// }
+/// ```
+///
+/// ## Settings
+///
+/// #### min_size
+/// `#[tuples::min_size]` sets the length of the first tuple. By default it equals to `0`.
+///
+/// ```
+/// #[fortuples::auto_impl]
+/// #[tuples::min_size(2)]
+/// # #[tuples::debug_expand(path = "doc/expand/auto_impl_min_size.rs")]
+/// trait Trait {}
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/auto_impl_min_size.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### max_size
+/// `#[tuples::max_size]` sets the length of the last tuple. By default it equals to `16`.
+///
+/// ```
+/// #[fortuples::auto_impl]
+/// #[tuples::max_size(4)]
+/// # #[tuples::debug_expand(path = "doc/expand/auto_impl_max_size.rs")]
+/// trait Trait {}
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/auto_impl_max_size.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### refs_tuple
+/// `#[tuples::refs_tuple]` adds references to each member type inside the current tuple.
+///
+/// ###### Immutable refs
+///
+/// ```
+/// #[fortuples::auto_impl]
+/// #[tuples::refs_tuple]
+/// # #[tuples::debug_expand(path = "doc/expand/auto_impl_refs_tuple.rs")]
+/// trait Trait {}
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/auto_impl_refs_tuple.rs")]
+/// ```
+///
+/// </details>
+///
+/// ###### Mutable refs
+///
+/// ```
+/// #[fortuples::auto_impl]
+/// #[tuples::refs_tuple(mut)]
+/// # #[tuples::debug_expand(path = "doc/expand/auto_impl_refs_tuple_mut.rs")]
+/// trait Trait {}
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/auto_impl_refs_tuple_mut.rs")]
+/// ```
+///
+/// </details>
+///
+/// #### debug_expand
+/// `#[tuples::debug_expand]` will print the macro expansion.
+///
+/// The expansion can be printed either to stdout or to a file.
+/// * `#[tuples::debug_expand]` prints to stdout.
+/// * `#[tuples::debug_expand(path = "<filepath>")]` prints to the file specified by the `<filepath>`.
+///
+/// All the macro expansions provided in this documentation were obtained using this setting.
+///
+/// >_Note: the macro expansion will be printed only if the `debug` feature is enabled._
+///
+/// ```
+/// #[fortuples::auto_impl]
+/// #[tuples::debug_expand(path = "doc/expand/auto_impl_debug_expand.rs")]
+/// trait Trait {}
+/// ```
+///
+/// <details>
+///     <summary>Show the macro expansion</summary>
+///
+/// ```
+/// # trait Trait {}
+#[doc = include_str!("../doc/expand/auto_impl_debug_expand.rs")]
+/// ```
+///
+/// </details>
 #[doc = include_str!("../doc/style.html")]
 pub fn auto_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     if !attr.is_empty() {
