@@ -146,7 +146,7 @@ You can also view the example [without comments](#fortuples-proc-macro-without-c
 
 You can find the example's macro expansion [here](#fortuples-proc-macro-expansion).
 
-_See the [fortuples!] macro documentation to learn about the macro settings (like `#[tuples::min_size]`)._
+_See the [`fortuples!`] macro documentation to learn about the macro settings (like `#[tuples::min_size]`)._
 
 ```
 # use fortuples::fortuples;
