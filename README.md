@@ -17,7 +17,7 @@ This macro will expand the provided code template for each tuple variety.
 
 Also, an attribute macro `#[auto_impl]` that implements a given trait for tuple combinations in a completely automatic way.
 
-_This crate is inspired by the [`impl_trait_for_tuples`](https://docs.rs/impl-trait-for-tuples/latest/impl_trait_for_tuples/)._
+_This crate is inspired by the [`impl_trait_for_tuples`](https://github.com/bkchr/impl-trait-for-tuples)._
 
 ----
 
