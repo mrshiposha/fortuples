@@ -1,6 +1,16 @@
 #[cfg(feature = "test")]
 #[doc = "test docs"]
-impl Container<()> {}
+impl Container<()> {
+    #[inline]
+    #[cfg(feature = "extra-test")]
+    #[doc = "test method docs"]
+    fn test_method() {}
+}
 #[cfg(feature = "test")]
 #[doc = "test docs"]
-impl<TestMember0> Container<(TestMember0,)> {}
+impl<TestMember0> Container<(TestMember0,)> {
+    #[inline]
+    #[cfg(feature = "extra-test")]
+    #[doc = "test method docs"]
+    fn test_method() {}
+}

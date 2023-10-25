@@ -12,7 +12,12 @@ fortuples! {
     #[doc = "test docs"]
     #[tuples::max_size(1)]
     #[tuples::debug_expand(path = "tests/ui/attrs_preserve.rs.output")]
-    impl Container<#Test> {}
+    impl Container<#Test> {
+        #[inline]
+        #[cfg(feature = "extra-test")]
+        #[doc = "test method docs"]
+        fn test_method() {}
+    }
 }
 
 #[test]
