@@ -1,5 +1,7 @@
 error: `auto_impl` supports only methods
  --> tests/ui/errors/auto-impl.macro.rs:3:5
   |
-3 |     some_macro! {
-  |     ^^^^^^^^^^
+3 | /     some_macro! {
+4 | |
+5 | |     }
+  | |_____^

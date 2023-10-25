@@ -1,5 +1,5 @@
-error: `auto_impl` supports only ident of wildcard arguments
+error: `auto_impl` supports arguments only in the form of identifiers or the wildcard (`_`)
  --> tests/ui/errors/auto-impl.pattern.box.rs:3:13
   |
 3 |     fn test(box a: Box<i32>) {
-  |             ^^^
+  |             ^^^^^^^^^^^^^^^

@@ -118,7 +118,7 @@ impl AutoImplInfo {
                     _ => {
                         return Err(Error::new(
                             arg.span(),
-                            "`auto_impl` supports only ident of wildcard arguments",
+                            "`auto_impl` supports arguments only in the form of identifiers or the wildcard (`_`)",
                         ))
                     }
                 }
