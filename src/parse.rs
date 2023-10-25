@@ -239,7 +239,7 @@ fn parse_impl_template_impl(
                     TokenTree::Ident(ident) => {
                         parse_metavar(&mut iter, info, template, ident, is_repetition)?
                     }
-                    TokenTree::Group(group) => {
+                    TokenTree::Group(group) if group.delimiter() == Delimiter::Parenthesis => {
                         parse_metavar_repetition(&mut iter, info, template, group)?
                     }
                     _ => {
